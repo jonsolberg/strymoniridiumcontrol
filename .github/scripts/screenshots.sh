@@ -2,6 +2,8 @@
 # Installs the APK on the emulator, walks through the screens and captures screenshots + logcat.
 set -x
 mkdir -p shots
+APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+"$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk > shots/signature.txt 2>&1 || true
 adb shell settings put global hide_error_dialogs 1
 sleep 25
 adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS
