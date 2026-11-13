@@ -303,7 +303,7 @@ fun Footswitch(
         Led(ledColor, ledOn)
         Spacer(Modifier.height(4.dp))
         Text(label, style = labelStyle)
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(6.dp))
         Canvas(
             Modifier
                 .size(switchSize)

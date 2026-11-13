@@ -99,6 +99,7 @@ fun PedalScreen(vm: IridiumViewModel, onOpenSettings: () -> Unit) {
 
 @Composable
 private fun ConnectionBanner(connected: String?, onOpenSettings: () -> Unit) {
+    if (connected != null) return // status lives in Settings; keep the pedal on screen
     val bg = if (connected == null) Color(0xFF5A2A22) else Color(0xFF1F3A27)
     Row(
         Modifier
@@ -127,7 +128,7 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
             .fillMaxWidth()
             .shadow(14.dp, shape)
             .brushedMetal(22.dp)
-            .padding(horizontal = 8.dp, vertical = 18.dp),
+            .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
@@ -136,7 +137,7 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
             ThreeWayToggle("CAB", Iridium.CAB_LETTERS, s.cabLetter, { vm.setCabLetter(it) }, Modifier.weight(1f), knob)
             PedalKnob("LEVEL", s.level, { vm.setValue(Cc.LEVEL, it) }, Modifier.weight(1f), knob)
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             // On the pedal MIDDLE and TREBLE sit slightly higher than BASS and ROOM.
             val drop = knob * 0.28f
@@ -145,13 +146,13 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
             PedalKnob("TREBLE", s.treble, { vm.setValue(Cc.TREBLE, it) }, Modifier.weight(1f), knob)
             PedalKnob("ROOM", s.room, { vm.setValue(Cc.ROOM, it) }, Modifier.weight(1f).padding(top = drop), knob)
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         Text("AMP  &  IR  CAB", color = FaceText, fontSize = 15.sp, fontWeight = FontWeight.Light, letterSpacing = 4.sp)
         Text(
             if (s.ampDisabled) "amp off · ${Iridium.cabName(s.cab)}" else "${Iridium.AMPS[s.amp - 1]} · ${Iridium.cabName(s.cab)}",
             color = FaceTextDim, fontSize = 11.sp, letterSpacing = 1.sp,
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(8.dp))
         // Footswitches sit under the outer knob columns, as on the pedal.
         Row(Modifier.fillMaxWidth()) {
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -167,7 +168,7 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
                 Footswitch("ON", LedRed, vm.engaged, onTap = vm::toggleOn, switchSize = knob * 0.95f)
             }
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(2.dp))
         Text("hold FAV to store this sound", color = FaceTextDim.copy(alpha = 0.7f), fontSize = 10.sp)
     }
 }
