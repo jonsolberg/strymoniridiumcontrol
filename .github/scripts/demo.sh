@@ -33,5 +33,5 @@ tap 540 2232 2.5            # Presets tab
 adb shell input swipe 540 1700 540 900 600; sleep 1.5
 tap 180 2232 2              # back to Pedal
 sleep 2
-kill -INT $REC 2>/dev/null; sleep 3
+adb shell pkill -INT screenrecord; wait $REC; sleep 4
 adb pull /sdcard/demo.mp4 shots/demo.mp4
