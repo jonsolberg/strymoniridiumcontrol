@@ -113,7 +113,12 @@ fun SettingsScreen(vm: IridiumViewModel) {
             }
             Hint("Must match the channel set on the Iridium (factory default is 1).")
             SwitchRow("Number presets from 1 (instead of 0)", vm.oneBased, vm::updateOneBased)
-            SwitchRow("Follow the pedal's knobs (needs MIDI output ON on the pedal)", vm.followPedal, vm::updateFollowPedal)
+            SwitchRow("Follow the pedal's knobs and switches", vm.followPedal, vm::updateFollowPedal)
+            Hint(
+                "For this the pedal's MIDI Output must be ON (green), it is OFF by default: unplug USB, " +
+                    "hold both footswitches while connecting power, release when the LEDs stop blinking, " +
+                    "turn LEVEL until the ON LED is green, then press ON. Check the MIDI monitor below for ← lines."
+            )
         }
 
         Section("Saving to the pedal") {

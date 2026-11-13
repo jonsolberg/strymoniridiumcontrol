@@ -328,7 +328,8 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
     // ---------------------------------------------------------------- incoming MIDI
     private fun onIncomingCc(ch: Int, ccNumber: Int, v: Int) {
         addLog("← ch${ch + 1} CC $ccNumber = $v")
-        if (ch != midiChannel) return
+        // Listen on every channel: older Iridium firmware talks over USB on a fixed channel
+        // even when the TRS MIDI channel has been changed.
         if (ccNumber == Cc.BANK) {
             incomingBank = v
             return
@@ -347,12 +348,15 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
                 sound = sound.copy(cab = (sound.amp - 1) * 3 + CAB_SWITCH_LOOKUP[v - 1])
             }
             Cc.BYPASS -> engaged = v > 0
+            // Footswitch presses reported by the pedal (127 = pressed).
+            Cc.ON_SWITCH -> if (v >= 64) engaged = !engaged
+            Cc.FAV_SWITCH -> if (v >= 64) favLit = !favLit
         }
     }
 
     private fun onIncomingProgram(ch: Int, p: Int) {
         addLog("← ch${ch + 1} PC $p (bank $incomingBank)")
-        if (ch != midiChannel || !followPedal) return
+        if (!followPedal) return
         val n = incomingBank * 128 + p
         if (!Iridium.isStorable(n)) return
         current = n
