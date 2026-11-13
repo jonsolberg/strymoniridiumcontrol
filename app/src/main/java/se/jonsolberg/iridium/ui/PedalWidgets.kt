@@ -209,8 +209,9 @@ fun ThreeWayToggle(
     selected: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    height: Dp = 66.dp,
+    minHeight: Dp = 66.dp,
 ) {
+    val height = maxOf(minHeight, 58.dp) // room for three labels
     val latestSelect by rememberUpdatedState(onSelect)
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, style = labelStyle)
