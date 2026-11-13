@@ -64,7 +64,7 @@ fun PedalScreen(vm: IridiumViewModel, onOpenSettings: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 720.dp
         val knob = when {
-            wide -> 84.dp
+            wide -> minOf(84.dp, maxHeight / 5.5f)
             maxWidth < 360.dp -> 58.dp
             else -> 68.dp
         }
