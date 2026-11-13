@@ -31,6 +31,7 @@ sleep 2
 shot 05-settings
 adb shell input tap $((W / 6)) $NAVY
 sleep 1
+bash .github/scripts/demo.sh
 adb shell settings put system user_rotation 1
 adb shell settings put system accelerometer_rotation 0
 sleep 3
