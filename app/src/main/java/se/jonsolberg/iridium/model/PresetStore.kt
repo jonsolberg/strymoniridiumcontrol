@@ -108,11 +108,12 @@ class PresetStore(private val file: File) {
 
         fun defaults(): List<Preset> {
             val list = MutableList(Iridium.PRESET_COUNT) { Preset(it) }
+            // drive, level, bass, middle, treble, room, roomSize, amp, cab
             val seeds = listOf(
-                "Clean Jangle" to PedalSound(64, 64, 64, 64, 64, 32, 1, 2, 3),
-                "Classic Clean" to PedalSound(71, 49, 88, 64, 88, 32, 2, 1, 0),
-                "Crown Jewel" to PedalSound(127, 51, 70, 76, 114, 32, 2, 2, 4),
-                "Punched Up" to PedalSound(88, 49, 88, 127, 96, 32, 3, 3, 6),
+                "Glass Clean" to PedalSound(40, 60, 60, 55, 80, 40, 2, 1, 1),
+                "Bright Ring" to PedalSound(75, 55, 58, 70, 95, 30, 1, 2, 5),
+                "Edge of Breakup" to PedalSound(100, 50, 66, 80, 90, 25, 2, 2, 3),
+                "Plexi Roar" to PedalSound(115, 45, 80, 100, 85, 35, 3, 3, 8),
             )
             seeds.forEachIndexed { i, (name, s) -> list[i] = Preset(i, name, s, SyncState.EDITED) }
             return list
