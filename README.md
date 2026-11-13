@@ -31,8 +31,8 @@ written in Kotlin with Jetpack Compose. It replaces the old *Iridium Controller*
 | 9 | Volume pedal pre/post | 19 | Amp 1–3 |
 | 12 | Level | 20 | Cab 0–8 |
 | 13 | Drive | 21 | Amp disable |
-| 14 | Bass | 27 | FAV footswitch (127 press / 0 release) |
-| 15 | Middle | 28 | ON footswitch (127 press / 0 release) |
+| 14 | Bass | 27 | FAV footswitch (pedal sends 1 press / 0 release; app sends 127 / 0) |
+| 15 | Middle | 28 | ON footswitch (pedal sends 1 press / 0 release; app sends 127 / 0) |
 | 16 | Treble | 102 | Bypass (0) / on (127) |
 | 17 | Room level | PC | Recall preset |
 

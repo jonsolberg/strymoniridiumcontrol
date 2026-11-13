@@ -438,9 +438,10 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
                 sound = sound.copy(cab = (sound.amp - 1) * 3 + CAB_SWITCH_LOOKUP[v - 1])
             }
             Cc.BYPASS -> engaged = v > 0
-            // Footswitch presses reported by the pedal (127 = pressed).
-            Cc.ON_SWITCH -> if (v >= 64) engaged = !engaged
-            Cc.FAV_SWITCH -> if (v >= 64) toggleFavDisplay()
+            // Footswitch presses reported by the pedal: it sends 1 on press and 0 on release
+            // (any non-zero value counts as a press, so 127 from other controllers works too).
+            Cc.ON_SWITCH -> if (v > 0) engaged = !engaged
+            Cc.FAV_SWITCH -> if (v > 0) toggleFavDisplay()
         }
     }
 
