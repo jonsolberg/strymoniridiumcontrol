@@ -138,10 +138,12 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
         }
         Spacer(Modifier.height(18.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            PedalKnob("BASS", s.bass, { vm.setValue(Cc.BASS, it) }, Modifier.weight(1f), knob)
+            // On the pedal MIDDLE and TREBLE sit slightly higher than BASS and ROOM.
+            val drop = knob * 0.28f
+            PedalKnob("BASS", s.bass, { vm.setValue(Cc.BASS, it) }, Modifier.weight(1f).padding(top = drop), knob)
             PedalKnob("MIDDLE", s.middle, { vm.setValue(Cc.MIDDLE, it) }, Modifier.weight(1f), knob)
             PedalKnob("TREBLE", s.treble, { vm.setValue(Cc.TREBLE, it) }, Modifier.weight(1f), knob)
-            PedalKnob("ROOM", s.room, { vm.setValue(Cc.ROOM, it) }, Modifier.weight(1f), knob)
+            PedalKnob("ROOM", s.room, { vm.setValue(Cc.ROOM, it) }, Modifier.weight(1f).padding(top = drop), knob)
         }
         Spacer(Modifier.height(20.dp))
         Text("AMP  &  IR  CAB", color = FaceText, fontSize = 15.sp, fontWeight = FontWeight.Light, letterSpacing = 4.sp)
@@ -150,14 +152,20 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
             color = FaceTextDim, fontSize = 11.sp, letterSpacing = 1.sp,
         )
         Spacer(Modifier.height(20.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            Footswitch(
-                "FAV", LedBlue, vm.favLit,
-                onTap = vm::tapFav,
-                onLongPress = onStore,
-                switchSize = knob * 0.95f,
-            )
-            Footswitch("ON", LedRed, vm.engaged, onTap = vm::toggleOn, switchSize = knob * 0.95f)
+        // Footswitches sit under the outer knob columns, as on the pedal.
+        Row(Modifier.fillMaxWidth()) {
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Footswitch(
+                    "FAV", LedBlue, vm.favLit,
+                    onTap = vm::tapFav,
+                    onLongPress = onStore,
+                    switchSize = knob * 0.95f,
+                )
+            }
+            Spacer(Modifier.weight(2f))
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Footswitch("ON", LedRed, vm.engaged, onTap = vm::toggleOn, switchSize = knob * 0.95f)
+            }
         }
         Spacer(Modifier.height(6.dp))
         Text("hold FAV to store this sound", color = FaceTextDim.copy(alpha = 0.7f), fontSize = 10.sp)
