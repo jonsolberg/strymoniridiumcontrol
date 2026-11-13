@@ -339,26 +339,20 @@ fun Footswitch(
 }
 
 private fun DrawScope.drawFootswitch(pressed: Boolean) {
-    val s = size.minDimension
+    val r = size.minDimension / 2
     val c = center
+    drawCircle(Color.Black.copy(alpha = 0.5f), radius = r * 0.98f, center = c + Offset(r * 0.04f, r * 0.08f))
     // hex nut ring
-    drawCircle(Color.Black.copy(alpha = 0.55f), radius = s * 0.47f, center = c + Offset(s * 0.02f, s * 0.05f))
-    drawCircle(Brush.sweepGradient(chrome, c), radius = s * 0.45f, center = c)
-    drawCircle(Color(0xFF1A1B1D), radius = s * 0.36f, center = c)
-    // rounded-square chrome cap
-    val k = if (pressed) 0.92f else 1f
-    val side = s * 0.58f * k
-    val tl = c - Offset(side / 2, side / 2)
-    val rad = CornerRadius(side * 0.28f)
-    drawRoundRect(Color.Black.copy(alpha = 0.5f), topLeft = tl + Offset(0f, s * 0.03f), size = Size(side, side), cornerRadius = rad)
-    drawRoundRect(
-        Brush.linearGradient(listOf(Color(0xFFFAFAFA), Color(0xFFB4B7BC), Color(0xFFE8E9EB), Color(0xFF8E9196)), start = tl, end = tl + Offset(side, side)),
-        topLeft = tl, size = Size(side, side), cornerRadius = rad,
+    drawCircle(Brush.sweepGradient(chrome, c), radius = r * 0.96f, center = c)
+    drawCircle(Color(0xFF1C1D20), radius = r * 0.78f, center = c)
+    val k = if (pressed) 0.90f else 1f
+    drawCircle(
+        Brush.sweepGradient(listOf(Color(0xFFBFC2C6), Color(0xFFF7F7F7), Color(0xFF7D8085), Color(0xFFEDEDED), Color(0xFFBFC2C6)), c),
+        radius = r * 0.70f * k, center = c,
     )
-    val inset = side * 0.14f
-    drawRoundRect(
-        Brush.radialGradient(listOf(Color(0xFFFFFFFF), Color(0xFFC3C6CA)), center = c - Offset(side * 0.15f, side * 0.15f), radius = side * 0.7f),
-        topLeft = tl + Offset(inset, inset), size = Size(side - 2 * inset, side - 2 * inset), cornerRadius = CornerRadius(side * 0.2f),
+    drawCircle(
+        Brush.radialGradient(listOf(Color(0xFFFDFDFD), Color(0xFFA9ACB1)), center = c - Offset(r * 0.15f, r * 0.15f), radius = r * 0.6f),
+        radius = r * 0.52f * k, center = c,
     )
-    drawRoundRect(Color.Black.copy(alpha = 0.2f), topLeft = tl, size = Size(side, side), cornerRadius = rad, style = Stroke(1.2f))
+    drawCircle(Color.Black.copy(alpha = 0.18f), radius = r * 0.52f * k, center = c, style = Stroke(1.2f))
 }
