@@ -141,11 +141,11 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onFav: () -> Unit) {
             PedalKnob("DRIVE", s.drive, { vm.setValue(Cc.DRIVE, it) }, Modifier.weight(1f), knob)
             ThreeWayToggle(
                 "AMP", Iridium.AMPS, s.amp - 1, { vm.setAmp(it + 1) },
-                Modifier.weight(1f).padding(top = 2.dp), labelsLeft = true, height = knob * 0.8f,
+                Modifier.weight(1f).padding(top = 2.dp), labelsLeft = true, height = maxOf(knob, 60.dp),
             )
             ThreeWayToggle(
                 "CAB", Iridium.CAB_LETTERS, s.cabLetter, { vm.setCabLetter(it) },
-                Modifier.weight(1f).padding(top = 2.dp), labelsLeft = false, height = knob * 0.8f,
+                Modifier.weight(1f).padding(top = 2.dp), labelsLeft = false, height = maxOf(knob, 60.dp),
             )
             PedalKnob("LEVEL", s.level, { vm.setValue(Cc.LEVEL, it) }, Modifier.weight(1f), knob)
         }
@@ -157,6 +157,7 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onFav: () -> Unit) {
             PedalKnob("TREBLE", s.treble, { vm.setValue(Cc.TREBLE, it) }, Modifier.weight(1f), knob)
             PedalKnob("ROOM", s.room, { vm.setValue(Cc.ROOM, it) }, Modifier.weight(1f).padding(top = drop), knob)
         }
+        Spacer(Modifier.height(4.dp))
         // Footswitches under the outer columns, the model name between them.
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {

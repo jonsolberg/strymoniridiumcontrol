@@ -182,7 +182,10 @@ private fun DrawScope.drawKnob(value: Int) {
     // spun-aluminium cap
     val cap = r * 0.60f
     drawCircle(Color.Black.copy(alpha = 0.6f), radius = cap * 1.04f, center = c)
-    drawCircle(Brush.sweepGradient(aluminium, c), radius = cap, center = c)
+    drawCircle(
+        Brush.linearGradient(aluminium, start = c - Offset(cap, cap), end = c + Offset(cap, cap)),
+        radius = cap, center = c,
+    )
     drawCircle(
         Brush.radialGradient(listOf(Color.White.copy(alpha = 0.35f), Color.Transparent), center = c - Offset(cap * 0.35f, cap * 0.35f), radius = cap),
         radius = cap, center = c,
@@ -219,7 +222,8 @@ fun ThreeWayToggle(
                 Text(
                     o,
                     color = if (i == selected) FaceText else FaceTextDim.copy(alpha = 0.75f),
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
+                    lineHeight = 13.sp,
                     fontWeight = if (i == selected) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier.clickable(
                         interactionSource = remember { MutableInteractionSource() },
