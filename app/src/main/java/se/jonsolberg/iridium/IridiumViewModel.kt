@@ -3,6 +3,7 @@ package se.jonsolberg.iridium
 import android.app.Application
 import android.content.Context
 import android.media.midi.MidiDeviceInfo
+import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -167,7 +168,11 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
         cc(Cc.BYPASS, if (engaged) 127 else 0)
     }
 
+    /** When the app last pressed FAV over MIDI; the pedal echoes that press back. */
+    private var favSentAt = 0L
+
     fun tapFav() {
+        favSentAt = SystemClock.uptimeMillis()
         toggleFavDisplay()
         viewModelScope.launch { pressSwitch(Cc.FAV_SWITCH) }
     }
@@ -441,7 +446,8 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
             // Footswitch presses reported by the pedal: it sends 1 on press and 0 on release
             // (any non-zero value counts as a press, so 127 from other controllers works too).
             Cc.ON_SWITCH -> if (v > 0) engaged = !engaged
-            Cc.FAV_SWITCH -> if (v > 0) toggleFavDisplay()
+            // Ignore the pedal's echo of a FAV press the app just sent, or the LED would flip back.
+            Cc.FAV_SWITCH -> if (v > 0 && SystemClock.uptimeMillis() - favSentAt > ECHO_WINDOW_MS) toggleFavDisplay()
         }
     }
 
@@ -489,6 +495,7 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     companion object {
+        private const val ECHO_WINDOW_MS = 800L
         private val AMP_SWITCH_LOOKUP = intArrayOf(3, 1, 2)
         private val CAB_SWITCH_LOOKUP = intArrayOf(2, 0, 1)
     }
