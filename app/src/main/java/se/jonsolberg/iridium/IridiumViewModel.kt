@@ -163,7 +163,11 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
     fun setAmpDisabled(disabled: Boolean) = setValue(Cc.AMP_DISABLE, if (disabled) 127 else 0)
     fun setVolumePost(post: Boolean) = setValue(Cc.VOL_POSITION, if (post) 127 else 0)
 
+    /** When the app last switched ON/bypass; the pedal echoes it back as an ON footswitch press. */
+    private var onSentAt = 0L
+
     fun toggleOn() {
+        onSentAt = SystemClock.uptimeMillis()
         engaged = !engaged
         cc(Cc.BYPASS, if (engaged) 127 else 0)
     }
@@ -445,7 +449,8 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
             Cc.BYPASS -> engaged = v > 0
             // Footswitch presses reported by the pedal: it sends 1 on press and 0 on release
             // (any non-zero value counts as a press, so 127 from other controllers works too).
-            Cc.ON_SWITCH -> if (v > 0) engaged = !engaged
+            // Ignore the pedal's echo of an ON change the app just sent, or the LED would flip back.
+            Cc.ON_SWITCH -> if (v > 0 && SystemClock.uptimeMillis() - onSentAt > ECHO_WINDOW_MS) engaged = !engaged
             // Ignore the pedal's echo of a FAV press the app just sent, or the LED would flip back.
             Cc.FAV_SWITCH -> if (v > 0 && SystemClock.uptimeMillis() - favSentAt > ECHO_WINDOW_MS) toggleFavDisplay()
         }

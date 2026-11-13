@@ -14,8 +14,8 @@ android {
         applicationId = "se.jonsolberg.iridium"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.1.4"
+        versionCode = 9
+        versionName = "1.1.5"
     }
 
     signingConfigs {
