@@ -8,6 +8,13 @@ written in Kotlin with Jetpack Compose. It replaces the old *Iridium Controller*
 
 ![Pedal screen](docs/screenshot-faceplate.png)
 
+## Download
+
+Current version: **1.1.5** – get the APK from [jonsolberg.se:8080](http://jonsolberg.se:8080)
+or from the latest run of the **Build APK** workflow under *Actions*. Builds are signed with
+the project's release key, so new versions install over old ones and keep your presets.
+Needs Android 8.0 or newer.
+
 Screenshots: [pedal screen](docs/screenshot-pedal.png) · [preset library](docs/screenshot-presets.png) ·
 demo video: [docs/demo.mp4](docs/demo.mp4)
 
@@ -57,9 +64,9 @@ via CC 27 so the pedal enters save mode, release, then confirm with a Program Ch
 GitHub Actions builds a release APK on every push to `main` (download it from the
 run's artifacts) and attaches it to a GitHub release when a `v*` tag is pushed.
 
-To sign with a stable key (so updates install over each other), add these repository
-secrets: `SIGNING_KEYSTORE_B64` (base64 of the .jks), `SIGNING_STORE_PASSWORD`,
-`SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`. Without them the APK is debug-signed.
+Release builds are signed with the key stored in these repository secrets: `SIGNING_KEYSTORE_B64` (base64 of the .jks), `SIGNING_STORE_PASSWORD`,
+`SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`. Without them (e.g. in a fork) the APK is
+debug-signed.
 
 Locally: `./gradlew assembleRelease` (JDK 17, Android SDK 35).
 
