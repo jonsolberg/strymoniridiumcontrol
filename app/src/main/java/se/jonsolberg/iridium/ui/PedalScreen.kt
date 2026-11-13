@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,6 +61,7 @@ import se.jonsolberg.iridium.model.SyncState
 fun PedalScreen(vm: IridiumViewModel, onOpenSettings: () -> Unit) {
     val connected by vm.midi.connected.collectAsState()
     var showStore by rememberSaveable { mutableStateOf(false) }
+    var showFav by rememberSaveable { mutableStateOf(false) }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 720.dp
@@ -71,7 +73,7 @@ fun PedalScreen(vm: IridiumViewModel, onOpenSettings: () -> Unit) {
         if (wide) {
             Row(Modifier.fillMaxSize().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(Modifier.weight(1.1f).verticalScroll(rememberScrollState())) {
-                    PedalFace(vm, knob, onStore = { showStore = true })
+                    PedalFace(vm, knob, onFav = { showFav = true })
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     ConnectionBanner(connected, onOpenSettings)
@@ -86,7 +88,7 @@ fun PedalScreen(vm: IridiumViewModel, onOpenSettings: () -> Unit) {
             ) {
                 ConnectionBanner(connected, onOpenSettings)
                 PresetBar(vm, onStore = { showStore = true })
-                PedalFace(vm, knob, onStore = { showStore = true })
+                PedalFace(vm, knob, onFav = { showFav = true })
                 LiveEditPanel(vm)
             }
         }
@@ -94,6 +96,9 @@ fun PedalScreen(vm: IridiumViewModel, onOpenSettings: () -> Unit) {
 
     if (showStore) {
         StoreDialog(vm, connected != null, onDismiss = { showStore = false })
+    }
+    if (showFav) {
+        FavDialog(vm, connected != null, onDismiss = { showFav = false })
     }
 }
 
@@ -120,7 +125,7 @@ private fun ConnectionBanner(connected: String?, onOpenSettings: () -> Unit) {
 }
 
 @Composable
-fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
+fun PedalFace(vm: IridiumViewModel, knob: Dp, onFav: () -> Unit) {
     val s = vm.sound
     val shape = RoundedCornerShape(22.dp)
     Column(
@@ -128,48 +133,59 @@ fun PedalFace(vm: IridiumViewModel, knob: Dp, onStore: () -> Unit) {
             .fillMaxWidth()
             .shadow(14.dp, shape)
             .brushedMetal(22.dp)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .padding(horizontal = 8.dp, vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // Top: DRIVE, the two mini toggles, LEVEL
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             PedalKnob("DRIVE", s.drive, { vm.setValue(Cc.DRIVE, it) }, Modifier.weight(1f), knob)
-            ThreeWayToggle("AMP", Iridium.AMPS, s.amp - 1, { vm.setAmp(it + 1) }, Modifier.weight(1f), knob)
-            ThreeWayToggle("CAB", Iridium.CAB_LETTERS, s.cabLetter, { vm.setCabLetter(it) }, Modifier.weight(1f), knob)
+            ThreeWayToggle(
+                "AMP", Iridium.AMPS, s.amp - 1, { vm.setAmp(it + 1) },
+                Modifier.weight(1f).padding(top = 2.dp), labelsLeft = true, height = knob * 0.8f,
+            )
+            ThreeWayToggle(
+                "CAB", Iridium.CAB_LETTERS, s.cabLetter, { vm.setCabLetter(it) },
+                Modifier.weight(1f).padding(top = 2.dp), labelsLeft = false, height = knob * 0.8f,
+            )
             PedalKnob("LEVEL", s.level, { vm.setValue(Cc.LEVEL, it) }, Modifier.weight(1f), knob)
         }
-        Spacer(Modifier.height(10.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            // On the pedal MIDDLE and TREBLE sit slightly higher than BASS and ROOM.
-            val drop = knob * 0.28f
+        // MIDDLE and TREBLE sit between the outer rows; BASS and ROOM a little lower.
+        Row(Modifier.fillMaxWidth().offset(y = -knob * 0.12f), verticalAlignment = Alignment.Top) {
+            val drop = knob * 0.45f
             PedalKnob("BASS", s.bass, { vm.setValue(Cc.BASS, it) }, Modifier.weight(1f).padding(top = drop), knob)
             PedalKnob("MIDDLE", s.middle, { vm.setValue(Cc.MIDDLE, it) }, Modifier.weight(1f), knob)
             PedalKnob("TREBLE", s.treble, { vm.setValue(Cc.TREBLE, it) }, Modifier.weight(1f), knob)
             PedalKnob("ROOM", s.room, { vm.setValue(Cc.ROOM, it) }, Modifier.weight(1f).padding(top = drop), knob)
         }
-        Spacer(Modifier.height(10.dp))
-        Text("AMP  &  IR  CAB", color = FaceText, fontSize = 15.sp, fontWeight = FontWeight.Light, letterSpacing = 4.sp)
-        Text(
-            if (s.ampDisabled) "amp off · ${Iridium.cabName(s.cab)}" else "${Iridium.AMPS[s.amp - 1]} · ${Iridium.cabName(s.cab)}",
-            color = FaceTextDim, fontSize = 11.sp, letterSpacing = 1.sp,
-        )
-        Spacer(Modifier.height(8.dp))
-        // Footswitches sit under the outer knob columns, as on the pedal.
-        Row(Modifier.fillMaxWidth()) {
+        // Footswitches under the outer columns, the model name between them.
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Footswitch(
-                    "FAV", LedBlue, vm.favLit,
+                    "FAV", LedRed, vm.favLit,
                     onTap = vm::tapFav,
-                    onLongPress = onStore,
+                    onLongPress = onFav,
                     switchSize = knob * 0.95f,
+                    gap = knob * 0.45f,
                 )
             }
-            Spacer(Modifier.weight(2f))
+            Column(Modifier.weight(2f).padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.width(18.dp).height(1.dp).background(FaceText))
+                    Text(" amp & ir cab ", color = FaceText, fontSize = 13.sp)
+                    Box(Modifier.width(18.dp).height(1.dp).background(FaceText))
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    if (s.ampDisabled) "amp off · ${Iridium.cabName(s.cab)}" else "${Iridium.AMPS[s.amp - 1]} · ${Iridium.cabName(s.cab)}",
+                    color = FaceTextDim, fontSize = 11.sp, letterSpacing = 1.sp,
+                )
+                Spacer(Modifier.height(knob * 0.5f))
+                Text("hold FAV for the favorite", color = FaceTextDim.copy(alpha = 0.6f), fontSize = 10.sp)
+            }
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Footswitch("ON", LedRed, vm.engaged, onTap = vm::toggleOn, switchSize = knob * 0.95f)
+                Footswitch("ON", LedRed, vm.engaged, onTap = vm::toggleOn, switchSize = knob * 0.95f, gap = knob * 0.45f)
             }
         }
-        Spacer(Modifier.height(2.dp))
-        Text("hold FAV to store this sound", color = FaceTextDim.copy(alpha = 0.7f), fontSize = 10.sp)
     }
 }
 
@@ -283,5 +299,54 @@ private fun StoreDialog(vm: IridiumViewModel, connected: Boolean, onDismiss: () 
             }) { Text("Store") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+@Composable
+private fun FavDialog(vm: IridiumViewModel, connected: Boolean, onDismiss: () -> Unit) {
+    val fav = vm.favorite
+    var name by remember { mutableStateOf(fav?.name ?: "") }
+    var toPedal by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("FAV sound") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    if (fav == null) "No FAV sound stored in the app yet."
+                    else "Stored: ${fav.name.ifEmpty { "Untitled" }}\n${fav.sound.summary()}",
+                    fontSize = 13.sp,
+                )
+                OutlinedTextField(value = name, onValueChange = { name = it.take(40) }, label = { Text("Name") }, singleLine = true)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = toPedal && connected, onCheckedChange = { toPedal = it }, enabled = connected)
+                    Text(
+                        if (connected) "Also write it to the pedal's FAV (experimental)" else "Connect to write it to the pedal",
+                        fontSize = 13.sp,
+                    )
+                }
+                Text(
+                    "Stores the current knob settings as the favorite. It is included in the JSON backup (Settings).",
+                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                vm.storeFavorite(name, toPedal && connected)
+                onDismiss()
+            }) { Text("Store current as FAV") }
+        },
+        dismissButton = {
+            Row {
+                if (fav != null) {
+                    TextButton(onClick = {
+                        vm.recallFavorite()
+                        onDismiss()
+                    }) { Text("Load FAV") }
+                }
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+            }
+        },
     )
 }

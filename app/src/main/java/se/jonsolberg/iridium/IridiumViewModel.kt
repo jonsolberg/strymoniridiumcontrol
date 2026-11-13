@@ -16,11 +16,13 @@ import se.jonsolberg.iridium.midi.BleMidiDevice
 import se.jonsolberg.iridium.midi.BleMidiScanner
 import se.jonsolberg.iridium.midi.MidiController
 import se.jonsolberg.iridium.model.Cc
+import se.jonsolberg.iridium.model.Favorite
 import se.jonsolberg.iridium.model.Iridium
 import se.jonsolberg.iridium.model.PedalSound
 import se.jonsolberg.iridium.model.Preset
 import se.jonsolberg.iridium.model.PresetStore
 import se.jonsolberg.iridium.model.SyncState
+import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -46,6 +48,10 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var busy by mutableStateOf<String?>(null)
         private set
+    /** The sound behind the FAV footswitch, as last stored from this app. */
+    var favorite by mutableStateOf(store.loadFavorite())
+        private set
+    private var soundBeforeFav: PedalSound? = null
     val log = mutableStateListOf<String>()
 
     // ---- settings ----
@@ -162,8 +168,62 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun tapFav() {
-        favLit = !favLit
+        toggleFavDisplay()
         viewModelScope.launch { pressSwitch(Cc.FAV_SWITCH) }
+    }
+
+    /** Mirrors the pedal: FAV on shows the favorite sound, FAV off returns to the previous one. */
+    private fun toggleFavDisplay() {
+        favLit = !favLit
+        if (favLit) {
+            favorite?.let {
+                soundBeforeFav = sound
+                sound = it.sound
+            }
+        } else {
+            soundBeforeFav?.let { sound = it }
+            soundBeforeFav = null
+        }
+    }
+
+    fun storeFavorite(name: String, alsoToPedal: Boolean) {
+        val fav = Favorite(name.trim(), sound)
+        favorite = fav
+        store.saveFavorite(fav)
+        addLog("Stored FAV sound in the app")
+        if (alsoToPedal) writeFavoriteToPedal(fav)
+    }
+
+    /** Loads the stored FAV sound into the editor and sends it live (does not touch the pedal's FAV memory). */
+    fun recallFavorite() {
+        favorite?.let {
+            sound = it.sound
+            sendAll()
+        }
+    }
+
+    /**
+     * Writes the favorite into the pedal: switch to manual mode (bank 0 / PC 127), send every
+     * setting, then hold FAV the way you would on the pedal to store a new favorite.
+     */
+    private fun writeFavoriteToPedal(fav: Favorite) {
+        if (!isConnected || saveJob?.isActive == true) return
+        saveJob = viewModelScope.launch {
+            try {
+                busy = "Writing the FAV sound to the pedal…"
+                program(Iridium.MANUAL_SLOT)
+                delay(300)
+                sendAllNow(fav.sound)
+                delay(200)
+                cc(Cc.FAV_SWITCH, 127)
+                delay(favHoldMs.toLong())
+                cc(Cc.FAV_SWITCH, 0)
+                delay(800)
+                addLog("Sent FAV store sequence to pedal")
+            } finally {
+                busy = null
+            }
+        }
     }
 
     /** Connection test used by the original app: virtually press the ON footswitch. */
@@ -259,6 +319,36 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
         return copied
     }
 
+    fun exportBackup(): String {
+        val settings = JSONObject()
+            .put("midiChannel", midiChannel)
+            .put("oneBased", oneBased)
+            .put("saveViaProgramChange", saveViaProgramChange)
+            .put("favHoldMs", favHoldMs)
+            .put("followPedal", followPedal)
+        return PresetStore.backupJson(presets, favorite, settings)
+    }
+
+    /** Restores a full backup, replacing the library, FAV sound and settings. Returns preset count. */
+    fun importBackup(text: String): Int {
+        val b = PresetStore.parseBackup(text)
+        presets = b.presets
+        store.save(presets)
+        b.favorite?.let {
+            favorite = it
+            store.saveFavorite(it)
+        }
+        b.settings?.let { st ->
+            if (st.has("midiChannel")) updateChannel(st.getInt("midiChannel"))
+            if (st.has("oneBased")) updateOneBased(st.getBoolean("oneBased"))
+            if (st.has("saveViaProgramChange")) updateSaveViaPc(st.getBoolean("saveViaProgramChange"))
+            if (st.has("favHoldMs")) updateFavHold(st.getInt("favHoldMs"))
+            if (st.has("followPedal")) updateFollowPedal(st.getBoolean("followPedal"))
+        }
+        presets[current].sound?.let { sound = it }
+        return presets.count { it.sound != null }
+    }
+
     fun exportJson(numbers: Collection<Int>): String =
         PresetStore.exportJson(numbers.sorted().map { presets[it] }.filter { it.sound != null })
 
@@ -350,7 +440,7 @@ class IridiumViewModel(app: Application) : AndroidViewModel(app) {
             Cc.BYPASS -> engaged = v > 0
             // Footswitch presses reported by the pedal (127 = pressed).
             Cc.ON_SWITCH -> if (v >= 64) engaged = !engaged
-            Cc.FAV_SWITCH -> if (v >= 64) favLit = !favLit
+            Cc.FAV_SWITCH -> if (v >= 64) toggleFavDisplay()
         }
     }
 

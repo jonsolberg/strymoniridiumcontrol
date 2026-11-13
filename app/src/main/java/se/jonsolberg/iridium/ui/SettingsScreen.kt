@@ -2,6 +2,7 @@ package se.jonsolberg.iridium.ui
 
 import android.Manifest
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -30,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,6 +47,22 @@ fun SettingsScreen(vm: IridiumViewModel) {
     val bleFound by vm.ble.found.collectAsState()
     val bleScanning by vm.ble.scanning.collectAsState()
     val bleError by vm.ble.error.collectAsState()
+    val context = LocalContext.current
+    fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+    val backupOut = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching {
+            context.contentResolver.openOutputStream(uri)!!.use { it.write(vm.exportBackup().toByteArray()) }
+        }.onSuccess { toast("Backup saved") }.onFailure { toast("Backup failed: ${it.message}") }
+    }
+    val backupIn = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching {
+            val text = context.contentResolver.openInputStream(uri)!!.use { it.readBytes().decodeToString() }
+            vm.importBackup(text)
+        }.onSuccess { toast("Restored $it presets" + if (vm.favorite != null) " and the FAV sound" else "") }
+            .onFailure { toast("Restore failed: ${it.message}") }
+    }
 
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
@@ -134,6 +152,17 @@ fun SettingsScreen(vm: IridiumViewModel) {
                 onValueChange = { vm.updateFavHold((it / 100f).roundToInt() * 100) },
                 valueRange = 1000f..4000f,
             )
+        }
+
+        Section("Backup (JSON)") {
+            Hint(
+                "Saves every preset, the FAV sound and these settings in one .json file. " +
+                    "Restoring replaces the app's library with the file's contents."
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { backupOut.launch("iridium-backup.json") }) { Text("Export") }
+                OutlinedButton(onClick = { backupIn.launch(arrayOf("application/json", "text/plain", "*/*")) }) { Text("Import") }
+            }
         }
 
         Section("Connection test") {
