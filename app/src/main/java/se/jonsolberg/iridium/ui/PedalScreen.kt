@@ -219,7 +219,7 @@ private fun PresetBar(vm: IridiumViewModel, onStore: () -> Unit) {
 @Composable
 private fun LiveEditPanel(vm: IridiumViewModel) {
     val s = vm.sound
-    Card {
+    Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Live edit", style = MaterialTheme.typography.titleSmall)
             ChoiceRow("Room size", listOf("Small", "Medium", "Large"), s.roomSize - 1) { vm.setRoomSize(it + 1) }
