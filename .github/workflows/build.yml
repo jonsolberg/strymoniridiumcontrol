@@ -59,7 +59,7 @@ jobs:
           TAG="v$VERSION"
           # Fixed name, so releases/latest/download/IridiumControl.apk always points at the newest build.
           cp "$APK" IridiumControl.apk
-          cp "$APK" "IridiumControl-$VERSION.apk"
+          [ -e "IridiumControl-$VERSION.apk" ] || cp "$APK" "IridiumControl-$VERSION.apk"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "IridiumControl-$VERSION.apk" IridiumControl.apk --clobber
           else
