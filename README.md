@@ -72,4 +72,5 @@ Locally: `./gradlew assembleRelease` (JDK 17, Android SDK 35).
 
 ## Website
 
-`docs/website/` holds the block used on jonsolberg.se:8080 (HTML, icon and screenshot).
+The app is listed in the Tools section of [jonsolberg.se:8080](http://jonsolberg.se:8080);
+`docs/website/iridium-shot.webp` is the screenshot used there.
