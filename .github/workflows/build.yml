@@ -51,7 +51,18 @@ jobs:
           path: ${{ env.APK }}
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ env.APK }}
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(grep -oP 'versionName\s*=?\s*"\K[^"]+' app/build.gradle* | head -1)
+          TAG="v$VERSION"
+          # Fixed name, so releases/latest/download/IridiumControl.apk always points at the newest build.
+          cp "$APK" IridiumControl.apk
+          cp "$APK" "IridiumControl-$VERSION.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "IridiumControl-$VERSION.apk" IridiumControl.apk --clobber
+          else
+            gh release create "$TAG" "IridiumControl-$VERSION.apk" IridiumControl.apk --target "$GITHUB_SHA" \
+              --title "Iridium Control $VERSION" --notes "Built from ${GITHUB_SHA::7}." --latest
+          fi

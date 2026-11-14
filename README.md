@@ -10,8 +10,9 @@ written in Kotlin with Jetpack Compose. It replaces the old *Iridium Controller*
 
 ## Download
 
-Current version: **1.1.5** – get the APK from [jonsolberg.se:8080](http://jonsolberg.se:8080)
-or from the latest run of the **Build APK** workflow under *Actions*. Builds are signed with
+**[Download the latest APK](https://github.com/jonsolberg/strymoniridiumcontrol/releases/latest/download/IridiumControl.apk)** · [all releases](https://github.com/jonsolberg/strymoniridiumcontrol/releases)
+
+Current version: **1.1.5** – also on [jonsolberg.se:8080](http://jonsolberg.se:8080). Builds are signed with
 the project's release key, so new versions install over old ones and keep your presets.
 Needs Android 8.0 or newer.
 
