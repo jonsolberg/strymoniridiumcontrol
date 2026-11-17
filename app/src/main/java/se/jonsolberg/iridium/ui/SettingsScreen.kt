@@ -188,10 +188,10 @@ fun SettingsScreen(vm: IridiumViewModel) {
         }
 
         Section("Support") {
-            Hint("Iridium Control is free, open source and has no ads. If it's useful to you, you can buy me a beer.")
+            Hint("Iridium Control is free, open source and has no ads. If it's useful to you, you can support me.")
             val uri = LocalUriHandler.current
             Button(onClick = { runCatching { uri.openUri("https://ko-fi.com/jonsolberg") } }, modifier = Modifier.fillMaxWidth()) {
-                Text("🍺 Buy me a beer on Ko-fi")
+                Text("❤️ Support me on Ko-fi")
             }
         }
 
