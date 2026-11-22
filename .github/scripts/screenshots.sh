@@ -25,13 +25,16 @@ shot 02-pedal-drive-turned
 adb shell input swipe $((W / 2)) $((H * 70 / 100)) $((W / 2)) $((H * 20 / 100)) 300
 sleep 1
 shot 03-pedal-scrolled
-adb shell input tap $((W / 2)) $NAVY
+adb shell input tap $((W * 3 / 8)) $NAVY
 sleep 2
 shot 04-presets
-adb shell input tap $((W * 5 / 6)) $NAVY
+adb shell input tap $((W * 5 / 8)) $NAVY
 sleep 2
 shot 05-settings
-adb shell input tap $((W / 6)) $NAVY
+adb shell input tap $((W * 7 / 8)) $NAVY
+sleep 2
+shot 07-about
+adb shell input tap $((W / 8)) $NAVY
 sleep 1
 bash .github/scripts/demo.sh
 adb shell settings put system user_rotation 1
