@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
                 App(viewModel())
             }
         }
+        if (savedInstanceState == null) UpdateChecker.start(this)
     }
 }
 
