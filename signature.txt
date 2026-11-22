@@ -1,0 +1,4 @@
+V2 Signer: certificate DN: CN=Jon Solberg, L=Goteborg, C=SE
+V2 Signer: certificate SHA-256 digest: ef92ee1511667d2d81bab73c30521757bed218fa44cbf4722841b526e5ebee04
+V2 Signer: certificate SHA-1 digest: 3feaaccaa97d760fe9a48ba715d180902e807b47
+V2 Signer: certificate MD5 digest: d3851a1f17430cc32b2d04a1c23850b9
