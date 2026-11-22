@@ -78,12 +78,6 @@ debug-signed.
 
 Locally: `./gradlew assembleRelease` (JDK 17, Android SDK 35).
 
-## Website
-
-The app is listed on the Music page of [jonsolberg.se:8080](https://jonsolberg.se:8080/music.html);
-`docs/website/iridium-shot.webp` is the screenshot used there. The site links to the latest release and the web editor here
-on GitHub.
-
 ## Support
 
 Iridium Control is free, open source and has no ads. If you find it useful, you can
