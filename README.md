@@ -1,7 +1,8 @@
 # Iridium Control
 
-A modern Android editor and preset librarian for the Strymon Iridium amp & IR cab pedal,
-written in Kotlin with Jetpack Compose. Works on current phones (Android 8.0 – 15+).
+An editor and preset librarian for the Strymon Iridium amp & IR cab pedal, as an **Android app** and a
+**[web editor](https://jonsolberg.github.io/strymoniridiumcontrol/)** that runs in the browser – no install needed.
+The app is written in Kotlin with Jetpack Compose and works on current phones (Android 8.0 – 15+).
 
 > Independent hobby project, not affiliated with Strymon.
 
