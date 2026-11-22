@@ -33,26 +33,81 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);backgrou
 @media (prefers-color-scheme:dark){.notice{background:#2c2413;color:#f0d49a;border-color:#5a4718}}
 .grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
-/* the pedal */
-.pedal{background:linear-gradient(160deg,var(--panel2),var(--panel));border-radius:18px;padding:18px 14px 14px;color:#eee;user-select:none;touch-action:none}
-.knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 6px;justify-items:center}
-.knob{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:ns-resize;outline:none}
-.knob svg{width:76px;height:76px}
-.knob b{font-size:12px;letter-spacing:.08em}
-.knob span{font-size:11px;color:#aab}
-.knob:focus-visible svg{filter:drop-shadow(0 0 4px var(--accent))}
-.switches{display:flex;justify-content:center;gap:26px;margin:14px 0 6px}
-.sw3{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
-.sw3 .opts{display:flex;gap:4px}
-.sw3 button{background:#3a3f49;border-color:#4a505b;color:#ddd;padding:4px 10px;font-size:12px}
-.sw3 button.on{background:#e8e8ea;color:#111}
-.foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:0 10px}
-.fs{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em}
-.led{width:12px;height:12px;border-radius:50%;background:#511;box-shadow:inset 0 0 2px #000}
-.led.on{background:var(--led);box-shadow:0 0 10px var(--led)}
-.led.fav.on{background:#9fe;box-shadow:0 0 10px #9fe}
-.fsw{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fafafa,#9a9ea6 60%,#6b6f76);border:3px solid #444;cursor:pointer}
-.fsw:active{transform:scale(.96)}
+/* ---- realistic pedal parts (same look as the Android app) ---- */
+.pd{position:relative;user-select:none;-webkit-user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;--k:clamp(50px,12vw,70px);--fs:clamp(54px,12vw,66px)}
+.pd *{box-sizing:border-box}
+.pd i{display:block;font-style:normal}
+.knob{display:flex;flex-direction:column;align-items:center;cursor:grab;outline:none;position:relative;touch-action:none}
+.knob.drag{cursor:grabbing}
+.kv{width:var(--k);height:var(--k);position:relative}
+.rk,.rk i{position:absolute;border-radius:50%}
+.rk{inset:0}
+.rk .sh{inset:1.5%;background:rgba(0,0,0,.55);transform:translate(2%,5%);filter:blur(1.5px)}
+.rk .sk{inset:1.5%;background:radial-gradient(circle,#2a2a2c,#070708 72%)}
+.rk .kn{inset:1.5%;background:repeating-conic-gradient(#3b3b3e 0 2.4deg,transparent 2.4deg 7.5deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 87%,#000 88% 99%,transparent 100%);mask:radial-gradient(closest-side,transparent 87%,#000 88% 99%,transparent 100%)}
+.rk .pt{left:50%;top:50%;width:50%;height:7%;margin-top:-3.5%;transform-origin:0 50%;border-radius:0}
+.rk .pt::after{content:"";position:absolute;left:66%;right:5%;top:0;bottom:0;border-radius:99px;background:#f7f5f0}
+.rk .cap{inset:20%;box-shadow:0 0 0 1.5px rgba(0,0,0,.6);
+  background:radial-gradient(circle at 32% 32%,rgba(255,255,255,.38),transparent 62%),
+    repeating-radial-gradient(circle,transparent 0 16%,rgba(0,0,0,.05) 16.5% 17%),
+    conic-gradient(from 45deg,#e9eaec,#9ea1a6,#f6f6f7,#8d9095,#e2e3e5,#a4a7ac,#e9eaec)}
+/* black knob (Terraform) */
+.rk.blk .sk{background:radial-gradient(circle,#2c2c2f,#060607 72%)}
+.rk.blk .kn{background:repeating-conic-gradient(#333336 0 2.6deg,transparent 2.6deg 10deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 85%,#000 86% 99%,transparent 100%);mask:radial-gradient(closest-side,transparent 85%,#000 86% 99%,transparent 100%)}
+.rk.blk .face{inset:10%;background:radial-gradient(circle at 25% 20%,#3a3a3e,#0d0d0f 85%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.rk.blk .pt{height:8%;margin-top:-4%}
+.rk.blk .pt::after{left:30%;right:22%}
+.bub{position:absolute;left:50%;top:calc(var(--k) / 2);transform:translate(-50%,-50%);background:rgba(16,16,16,.9);color:#fff;
+  font:700 13px/1.3 system-ui,sans-serif;padding:2px 7px;border-radius:6px;opacity:0;pointer-events:none;white-space:nowrap;z-index:3;transition:opacity .12s}
+.knob.drag .bub,.knob:hover .bub,.knob:focus-visible .bub{opacity:1}
+.knob:focus-visible .kv{filter:drop-shadow(0 0 5px rgba(120,180,255,.9))}
+.knob b{margin-top:5px;font:500 12px/1 system-ui,sans-serif;letter-spacing:.12em;white-space:nowrap}
+/* chrome nut, footswitch */
+.nut{border-radius:50%;background:conic-gradient(#f2f2f2,#8c8f94,#e0e0e0,#6b6e73,#f2f2f2)}
+.rfs{width:var(--fs);height:var(--fs);border:0;padding:0;margin:0;background:none;position:relative;cursor:pointer;border-radius:50%;flex:none}
+.rfs i{position:absolute;border-radius:50%;transition:transform .06s}
+.rfs .sh{inset:1%;background:rgba(0,0,0,.5);transform:translate(2%,4%);filter:blur(1.5px)}
+.rfs .ring{inset:2%}
+.rfs .well{inset:11%;background:#1c1d20}
+.rfs .c1{inset:15%;background:conic-gradient(#bfc2c6,#f7f7f7,#7d8085,#ededed,#bfc2c6)}
+.rfs .c2{inset:24%;background:radial-gradient(circle at 35% 35%,#fdfdfd,#a9acb1 75%);box-shadow:0 0 0 1.2px rgba(0,0,0,.18)}
+.rfs:active .c1,.rfs:active .c2,.rfs.down .c1,.rfs.down .c2{transform:scale(.9)}
+.rfs:focus-visible{outline:2px solid #7ab8ff;outline-offset:3px}
+/* LEDs */
+.rled{width:16px;height:16px;position:relative;flex:none;--c:#ff3b30}
+.rled::after{content:"";position:absolute;inset:30%;border-radius:50%;background:color-mix(in srgb,var(--c) 22%,transparent);box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.rled.on::after{background:radial-gradient(circle,#fff,var(--c) 85%);box-shadow:0 0 6px 3px color-mix(in srgb,var(--c) 60%,transparent)}
+.rled.tf::after{inset:26%;background:radial-gradient(circle at 35% 35%,#dadce0,#6e7176 90%);box-shadow:0 0 0 2px #8d9095}
+.rled.tf.on::after{background:radial-gradient(circle,#fff,var(--c) 85%);box-shadow:0 0 0 2px #8d9095,0 0 8px 4px color-mix(in srgb,var(--c) 70%,transparent)}
+/* mini toggles */
+.tg{position:relative;cursor:pointer;flex:none}
+.tg i{position:absolute;border-radius:50%}
+.tg .lev{border-radius:99px}
+.tgl{display:flex;flex-direction:column;justify-content:space-evenly;font:11px/13px system-ui,sans-serif}
+.tgl span{cursor:pointer;opacity:.62}
+.tgl span.on{opacity:1;font-weight:700}
+/* Iridium face */
+.pedal.pd{border-radius:22px;padding:16px 8px 16px;color:#f1eee8;box-shadow:0 12px 28px rgba(0,0,0,.35),inset 0 0 0 1.5px rgba(255,255,255,.07);
+  background:radial-gradient(ellipse at 30% 8%,rgba(255,255,255,.05),transparent 70%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(160deg,#242426,#1a1a1c 50%,#141415)}
+.ir-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start;justify-items:center}
+.ir-row:first-child{position:relative;z-index:2}
+.ir-row2{margin-top:calc(var(--k) * -.12)}
+.ir-row2 .low{margin-top:calc(var(--k) * .45)}
+.lab{font:500 12px/1 system-ui,sans-serif;letter-spacing:.12em;color:#f1eee8}
+.tgw{display:flex;align-items:flex-end;gap:6px;padding-top:2px}
+.tgw .tt{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tgl{color:#f1eee8}
+.tgl.left{text-align:right}
+.ir-foot{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:start;justify-items:center;margin-top:18px}
+.fsc{display:flex;flex-direction:column;align-items:center}
+.fsc .rled{margin:4px 0 calc(var(--k) * .45)}
+.irmid{padding-top:18px;text-align:center}
+.irmid .brand{display:flex;align-items:center;gap:6px;font:13px system-ui,sans-serif;color:#f1eee8}
+.irmid .brand::before,.irmid .brand::after{content:"";width:18px;height:1px;background:#f1eee8}
+.irmid .st{margin-top:8px;font:11px system-ui,sans-serif;letter-spacing:.06em;color:#9c9890}
+.irmid .hint{margin-top:calc(var(--k) * .5);font:10px system-ui,sans-serif;color:rgba(156,152,144,.6)}
 .desc{font-size:12.5px;color:var(--muted);margin-top:4px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{padding:4px 12px;font-size:13px}
@@ -100,16 +155,23 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin:20px 0}
 
 <div class="grid">
 <div>
-  <div class="pedal" id="pedal">
-    <div class="knobs" id="knobs"></div>
-    <div class="switches">
-      <div class="sw3"><span>AMP</span><div class="opts" id="ampSw"></div></div>
-      <div class="sw3"><span>CAB</span><div class="opts" id="cabSw"></div></div>
+  <div class="pedal pd" id="pedal">
+    <div class="ir-row">
+      <div class="knob" tabindex="0" data-k="drive" aria-label="DRIVE"><div class="kv"></div><span class="bub"></span><b>DRIVE</b></div>
+      <div class="tgw"><div class="tgl left" id="ampL"></div><div class="tt"><b class="lab">AMP</b><div id="ampT"></div></div></div>
+      <div class="tgw"><div class="tt"><b class="lab">CAB</b><div id="cabT"></div></div><div class="tgl" id="cabL"></div></div>
+      <div class="knob" tabindex="0" data-k="level" aria-label="LEVEL"><div class="kv"></div><span class="bub"></span><b>LEVEL</b></div>
     </div>
-    <div class="foot">
-      <div class="fs"><div class="led fav" id="ledFav"></div><button class="fsw" id="fsFav" title="FAV (tap)"></button>FAV</div>
-      <div style="text-align:center;font-size:12px;color:#bbb"><div id="ampName"></div><div id="cabName"></div></div>
-      <div class="fs"><div class="led" id="ledOn"></div><button class="fsw" id="fsOn" title="ON / bypass"></button>ON</div>
+    <div class="ir-row ir-row2">
+      <div class="knob low" tabindex="0" data-k="bass" aria-label="BASS"><div class="kv"></div><span class="bub"></span><b>BASS</b></div>
+      <div class="knob" tabindex="0" data-k="middle" aria-label="MIDDLE"><div class="kv"></div><span class="bub"></span><b>MIDDLE</b></div>
+      <div class="knob" tabindex="0" data-k="treble" aria-label="TREBLE"><div class="kv"></div><span class="bub"></span><b>TREBLE</b></div>
+      <div class="knob low" tabindex="0" data-k="room" aria-label="ROOM"><div class="kv"></div><span class="bub"></span><b>ROOM</b></div>
+    </div>
+    <div class="ir-foot">
+      <div class="fsc"><b class="lab">FAV</b><div class="rled" id="ledFav"></div><button class="rfs" id="fsFav" title="FAV – recall or leave the favorite"><i class="sh"></i><i class="ring nut"></i><i class="well"></i><i class="c1"></i><i class="c2"></i></button></div>
+      <div class="irmid"><div class="brand">amp &amp; ir cab</div><div class="st" id="irState"></div><div class="hint">drag a knob, or use the wheel or arrow keys</div></div>
+      <div class="fsc"><b class="lab">ON</b><div class="rled" id="ledOn"></div><button class="rfs" id="fsOn" title="ON / bypass"><i class="sh"></i><i class="ring nut"></i><i class="well"></i><i class="c1"></i><i class="c2"></i></button></div>
     </div>
   </div>
 
@@ -279,33 +341,78 @@ function onMidi(e) {
 /* ---------------------------------------------------------------- knobs */
 const KNOBS = [['DRIVE', 'drive', CC.DRIVE], ['LEVEL', 'level', CC.LEVEL], ['BASS', 'bass', CC.BASS],
                ['MIDDLE', 'middle', CC.MIDDLE], ['TREBLE', 'treble', CC.TREBLE], ['ROOM', 'room', CC.ROOM]];
-function knobSvg(v) {
-  const a = -135 + v / 127 * 270, r = a * Math.PI / 180, x = 38 + 24 * Math.sin(r), y = 38 - 24 * Math.cos(r);
-  return `<svg viewBox="0 0 76 76"><circle cx="38" cy="38" r="31" fill="#111"/><circle cx="38" cy="38" r="27" fill="var(--knob)"/>`
-    + `<circle cx="38" cy="38" r="22" fill="url(#kg)"/><line x1="38" y1="38" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#111" stroke-width="4" stroke-linecap="round"/>`
-    + `<defs><radialGradient id="kg" cx=".35" cy=".3"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#9da1a8"/></radialGradient></defs></svg>`;
+/* ---- realistic pedal parts (same look as the Android app) ---- */
+const ART = {
+  /** knob art; v 0..127. Angle as in the app: 120° + 300°·v/127, clockwise from the right. */
+  knob(v, black) {
+    const a = 120 + 300 * v / 127;
+    return black
+      ? `<div class="rk blk"><i class="sh"></i><i class="sk"></i><i class="kn"></i><i class="face"></i><i class="pt" style="transform:rotate(${a.toFixed(1)}deg)"></i></div>`
+      : `<div class="rk"><i class="sh"></i><i class="sk"></i><i class="kn"></i><i class="pt" style="transform:rotate(${a.toFixed(1)}deg)"></i><i class="cap"></i></div>`;
+  },
+  fsInner: '<i class="sh"></i><i class="ring nut"></i><i class="well"></i><i class="c1"></i><i class="c2"></i>',
+  /** vertical three-way mini toggle, pos 0 (up) .. 2 (down), h = height in px */
+  toggle3(pos, h) {
+    const w = h * 0.5, cx = w / 2, cy = h / 2, nut = w * 0.72, inner = w * 0.40;
+    let s = `<i class="nut" style="left:${cx - nut / 2}px;top:${cy - nut / 2 + w * 0.05}px;width:${nut}px;height:${nut}px;filter:brightness(0) opacity(.5);"></i>`
+      + `<i class="nut" style="left:${cx - nut / 2}px;top:${cy - nut / 2}px;width:${nut}px;height:${nut}px"></i>`
+      + `<i style="left:${cx - inner / 2}px;top:${cy - inner / 2}px;width:${inner}px;height:${inner}px;background:#2b2c2f"></i>`;
+    if (pos === 1) {
+      const b = w * 0.34;
+      s += `<i style="left:${cx - b / 2}px;top:${cy - b / 2}px;width:${b}px;height:${b}px;background:radial-gradient(circle,#fff,#8a8d92 90%)"></i>`;
+    } else {
+      const ty = pos === 0 ? h * 0.16 : h * 0.84, lw = w * 0.14, b = w * 0.24;
+      s += `<i class="lev" style="left:${cx - lw / 2}px;top:${Math.min(ty, cy) - lw / 2}px;width:${lw}px;height:${Math.abs(cy - ty) + lw}px;background:linear-gradient(90deg,#e0e0e0,#7b7e83)"></i>`
+        + `<i style="left:${cx - b / 2}px;top:${ty - b / 2}px;width:${b}px;height:${b}px;background:radial-gradient(circle,#fff,#9a9da2 90%)"></i>`;
+    }
+    return `<div class="tg" style="width:${w}px;height:${h}px">${s}</div>`;
+  },
+  /** horizontal two-way mini toggle; left = true points left */
+  toggle2(left, w, h) {
+    const c = h * 0.62, cx = w / 2, cy = h / 2, nut = c * 0.84, inner = c * 0.48, lw = c * 0.22, b = c * 0.4;
+    const tx = left ? w * 0.14 : w * 0.86;
+    return `<div class="tg" style="width:${w}px;height:${h}px">`
+      + `<i class="nut" style="left:${cx - nut / 2}px;top:${cy - nut / 2}px;width:${nut}px;height:${nut}px"></i>`
+      + `<i style="left:${cx - inner / 2}px;top:${cy - inner / 2}px;width:${inner}px;height:${inner}px;background:#2b2c2f"></i>`
+      + `<i class="lev" style="left:${Math.min(tx, cx) - lw / 2}px;top:${cy - lw / 2}px;width:${Math.abs(cx - tx) + lw}px;height:${lw}px;background:linear-gradient(#e0e0e0,#7b7e83)"></i>`
+      + `<i style="left:${tx - b / 2}px;top:${cy - b / 2}px;width:${b}px;height:${b}px;background:radial-gradient(circle,#fff,#9a9da2 90%)"></i></div>`;
+  },
+};
+/** Drag (up/right = more), wheel, arrow keys and double-click for a knob element with data-k. */
+function wireKnob(el, get, set, centre) {
+  let y0 = 0, x0 = 0, v0 = 0, drag = false;
+  const clamp = v => Math.max(0, Math.min(127, v));
+  el.addEventListener('pointerdown', e => { drag = true; el.classList.add('drag'); y0 = e.clientY; x0 = e.clientX; v0 = get(); el.setPointerCapture(e.pointerId); e.preventDefault(); });
+  el.addEventListener('pointermove', e => { if (drag) set(clamp(v0 + (y0 - e.clientY + e.clientX - x0) / 1.5)); });
+  const end = () => { drag = false; el.classList.remove('drag'); };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.addEventListener('dblclick', () => set(centre));
+  el.addEventListener('wheel', e => { e.preventDefault(); set(clamp(get() - Math.sign(e.deltaY) * 3)); }, { passive: false });
+  el.addEventListener('keydown', e => {
+    const d = { ArrowUp: 2, ArrowRight: 2, ArrowDown: -2, ArrowLeft: -2, PageUp: 10, PageDown: -10 }[e.key];
+    if (d) { e.preventDefault(); set(clamp(get() + d)); }
+  });
 }
+/** Faint powder-coat grain, as an SVG background. */
+const _GRAIN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
+
 function setVal(c, v) {
   const next = withCc(sound, c, Math.round(v));
   if (JSON.stringify(next) === JSON.stringify(sound)) return;
   sound = next; cc(c, Math.round(v)); keep(); render();
 }
 function buildKnobs() {
-  $('knobs').innerHTML = KNOBS.map(([lab, key]) => `<div class="knob" tabindex="0" data-k="${key}"><div class="kv"></div><b>${lab}</b><span></span></div>`).join('');
-  $('knobs').querySelectorAll('.knob').forEach(el => {
+  document.querySelectorAll('#pedal .knob').forEach(el => {
     const [, key, c] = KNOBS.find(k => k[1] === el.dataset.k);
-    let y0 = 0, x0 = 0, v0 = 0, drag = false;
-    el.addEventListener('pointerdown', e => { drag = true; y0 = e.clientY; x0 = e.clientX; v0 = sound[key]; el.setPointerCapture(e.pointerId); });
-    el.addEventListener('pointermove', e => { if (drag) setVal(c, Math.max(0, Math.min(127, v0 + (y0 - e.clientY + e.clientX - x0) * 0.6))); });
-    el.addEventListener('pointerup', () => { drag = false; });
-    el.addEventListener('dblclick', () => setVal(c, 64));
-    el.addEventListener('wheel', e => { e.preventDefault(); setVal(c, Math.max(0, Math.min(127, sound[key] - Math.sign(e.deltaY) * 3))); }, { passive: false });
-    el.addEventListener('keydown', e => {
-      const d = { ArrowUp: 2, ArrowRight: 2, ArrowDown: -2, ArrowLeft: -2, PageUp: 10, PageDown: -10 }[e.key];
-      if (d) { e.preventDefault(); setVal(c, Math.max(0, Math.min(127, sound[key] + d))); }
-    });
+    wireKnob(el, () => sound[key], v => setVal(c, v), 64);
   });
+  const pick = (el, fn) => el.addEventListener('click', e => { const r = el.getBoundingClientRect(); fn(Math.max(0, Math.min(2, Math.floor((e.clientY - r.top) / r.height * 3)))); });
+  pick($('ampT'), i => setAmp(i + 1));
+  pick($('cabT'), i => setCab(((sound.cab / 3) | 0) * 3 + i));
+  $('ampL').addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) setAmp(+t.dataset.i + 1); });
+  $('cabL').addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) setCab(((sound.cab / 3) | 0) * 3 + +t.dataset.i); });
 }
+const toggleH = () => Math.max(60, $('pedal').querySelector('.kv').getBoundingClientRect().width || 60);
 
 /* ---------------------------------------------------------------- switches and live edit */
 function setAmp(a) {
@@ -385,14 +492,16 @@ async function importFile(f) {
 
 /* ---------------------------------------------------------------- drawing */
 function render() {
-  $('knobs').querySelectorAll('.knob').forEach(el => {
-    const key = el.dataset.k; el.querySelector('.kv').innerHTML = knobSvg(sound[key]); el.querySelector('span').textContent = pct(sound[key]) + '%';
+  document.querySelectorAll('#pedal .knob').forEach(el => {
+    const key = el.dataset.k; el.querySelector('.kv').innerHTML = ART.knob(sound[key]); el.querySelector('.bub').textContent = pct(sound[key]) + '%';
   });
-  chips($('ampSw'), AMPS, sound.amp - 1, i => setAmp(i + 1));
-  chips($('cabSw'), ['a', 'b', 'c'], sound.cab % 3, i => setCab(((sound.cab / 3) | 0) * 3 + i));
-  $('ampSw').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.i === sound.amp - 1));
-  $('ampName').textContent = cap(AMPS[sound.amp - 1]) + (sound.ampDisabled ? ' (bypassed)' : '');
-  $('cabName').textContent = 'Cab ' + cabName(sound.cab);
+  const th = toggleH();
+  $('ampT').innerHTML = ART.toggle3(sound.amp - 1, th);
+  $('cabT').innerHTML = ART.toggle3(sound.cab % 3, th);
+  $('ampL').style.height = $('cabL').style.height = th + 'px';
+  $('ampL').innerHTML = AMPS.map((a, i) => `<span data-i="${i}" class="${i === sound.amp - 1 ? 'on' : ''}">${a}</span>`).join('');
+  $('cabL').innerHTML = ['a', 'b', 'c'].map((a, i) => `<span data-i="${i}" class="${i === sound.cab % 3 ? 'on' : ''}">${a}</span>`).join('');
+  $('irState').textContent = (sound.ampDisabled ? 'amp off' : AMPS[sound.amp - 1]) + ' · ' + cabName(sound.cab) + ' · ' + ROOMS[sound.roomSize - 1].toLowerCase() + ' room';
   $('ledOn').classList.toggle('on', engaged); $('ledFav').classList.toggle('on', favLit);
   chips($('chRoom'), ROOMS, sound.roomSize - 1, i => setVal(CC.ROOM_SIZE, i + 1));
   chips($('chCabSet'), AMPS.map(cap), (sound.cab / 3) | 0, i => setCab(i * 3 + sound.cab % 3));
@@ -422,6 +531,7 @@ $('fileImport').onchange = e => { if (e.target.files[0]) importFile(e.target.fil
 $('plist').onclick = e => { const r = e.target.closest('.pr'); if (r) select(+r.dataset.n); };
 if (!navigator.requestMIDIAccess) { $('noMidi').classList.add('show'); $('btnConnect').disabled = true; }
 buildKnobs(); render();
+addEventListener('resize', () => render());
 window.__iri = { get sound() { return sound; }, presets, select, withCc, ccList };   // for tests
 </script>
 </body>
