@@ -11,9 +11,15 @@ written in Kotlin with Jetpack Compose. Works on current phones (Android 8.0 –
 
 **[Download the latest APK](https://github.com/jonsolberg/strymoniridiumcontrol/releases/latest/download/IridiumControl.apk)** · [all releases](https://github.com/jonsolberg/strymoniridiumcontrol/releases)
 
-Current version: **1.1.5** – also on [jonsolberg.se:8080](http://jonsolberg.se:8080). Builds are signed with
-the project's release key, so new versions install over old ones and keep your presets.
+**[Open the web editor](https://jonsolberg.github.io/strymoniridiumcontrol/)** – the same editor in the browser (Chrome, Edge or
+Opera on a computer, or Chrome on Android) over USB MIDI, with the knobs, live settings and a preset library. Its backups are
+the same JSON files as the app's, so presets move freely between them. The source is in `web/`.
+
+Builds are signed with the project's release key, so new versions install over old ones and keep your presets.
 Needs Android 8.0 or newer.
+
+The app isn't on Google Play, so Android asks before installing it. When you open the APK, allow your browser or
+file manager to **install unknown apps** (Android shows a switch for it), then tap *Install*.
 
 Screenshots: [pedal screen](docs/screenshot-pedal.png) · [preset library](docs/screenshot-presets.png) ·
 demo video: [docs/demo.mp4](docs/demo.mp4)
@@ -41,6 +47,7 @@ demo video: [docs/demo.mp4](docs/demo.mp4)
 - **Connections**: USB (pedal's USB port via OTG), any class-compliant USB MIDI
   interface, or Bluetooth LE MIDI adapters. Remembers and auto-connects the last device.
 - MIDI monitor and connection test.
+- **About tab** – help, copyright, links and the Ko-fi support link.
 
 ## MIDI used
 
@@ -72,8 +79,9 @@ Locally: `./gradlew assembleRelease` (JDK 17, Android SDK 35).
 
 ## Website
 
-The app is listed in the Tools section of [jonsolberg.se:8080](http://jonsolberg.se:8080);
-`docs/website/iridium-shot.webp` is the screenshot used there.
+The app is listed on the Music page of [jonsolberg.se:8080](https://jonsolberg.se:8080/music.html);
+`docs/website/iridium-shot.webp` is the screenshot used there. The site links to the latest release and the web editor here
+on GitHub.
 
 ## Support
 

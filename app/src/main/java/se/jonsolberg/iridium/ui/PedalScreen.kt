@@ -255,11 +255,11 @@ private fun LiveEditPanel(vm: IridiumViewModel) {
                 fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             ChoiceRow("Amp", listOf("On", "Bypassed"), if (s.ampDisabled) 1 else 0) { vm.setAmpDisabled(it == 1) }
-            ChoiceRow("Volume pedal", listOf("Pre", "Post"), if (s.volumePost) 1 else 0) { vm.setVolumePost(it == 1) }
             Text(
                 "${Iridium.AMPS[s.amp - 1].replaceFirstChar { it.uppercase() }} amp: ${Iridium.AMP_DESCRIPTIONS[s.amp - 1]}",
                 fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ChoiceRow("Volume pedal", listOf("Pre", "Post"), if (s.volumePost) 1 else 0) { vm.setVolumePost(it == 1) }
         }
     }
 }

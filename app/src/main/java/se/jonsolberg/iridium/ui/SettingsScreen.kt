@@ -187,15 +187,6 @@ fun SettingsScreen(vm: IridiumViewModel) {
             }
         }
 
-        Section("Support") {
-            Hint("Iridium Control is free, open source and has no ads. If it's useful to you, you can support me.")
-            val uri = LocalUriHandler.current
-            Button(onClick = { runCatching { uri.openUri("https://ko-fi.com/jonsolberg") } }, modifier = Modifier.fillMaxWidth()) {
-                Text("❤️ Support me on Ko-fi")
-            }
-        }
-
-        Hint("Iridium Control is an independent app and is not affiliated with Strymon.")
     }
 }
 

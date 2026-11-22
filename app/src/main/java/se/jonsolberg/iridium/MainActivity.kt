@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import se.jonsolberg.iridium.ui.AboutScreen
 import se.jonsolberg.iridium.ui.IridiumTheme
 import se.jonsolberg.iridium.ui.PedalScreen
 import se.jonsolberg.iridium.ui.PresetsScreen
@@ -54,6 +56,7 @@ private fun App(vm: IridiumViewModel) {
                 NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Default.Home, null) }, label = { Text("Pedal") })
                 NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.AutoMirrored.Filled.List, null) }, label = { Text("Presets") })
                 NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.Settings, null) }, label = { Text("Settings") })
+                NavigationBarItem(tab == 3, { tab = 3 }, { Icon(Icons.Default.Info, null) }, label = { Text("About") })
             }
         },
     ) { pad ->
@@ -61,7 +64,8 @@ private fun App(vm: IridiumViewModel) {
             when (tab) {
                 0 -> PedalScreen(vm, onOpenSettings = { tab = 2 })
                 1 -> PresetsScreen(vm, onOpenPreset = { tab = 0 })
-                else -> SettingsScreen(vm)
+                2 -> SettingsScreen(vm)
+                else -> AboutScreen()
             }
         }
     }

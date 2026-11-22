@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<!-- Iridium Control (web) – Copyright (C) 2026 Jon Solberg – GPL v3 or later, see LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iridium Control – web editor for the Strymon Iridium</title>
+<meta name="description" content="Edit the Strymon Iridium in the browser over USB MIDI: knobs, amps, cabs, live settings and a 300-slot preset library.">
+<style>
+:root{--bg:#f4f2ee;--card:#fff;--ink:#1f2328;--muted:#6b6f76;--line:#e2ded6;--accent:#d9572b;--good:#2e8b57;--amber:#c8860b;
+  --panel:#1d2026;--panel2:#2a2e36;--knob:#d7d9dd;--led:#ff4b3a}
+@media (prefers-color-scheme:dark){:root{--bg:#121418;--card:#1b1e24;--ink:#e8e9ec;--muted:#9aa0a8;--line:#2c3038}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:12px}
+header h1{font-size:22px;margin:0}
+header .sub{color:var(--muted);font-size:13px;flex-basis:100%;margin-top:-6px}
+.grow{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select,input{font:inherit;color:inherit}
+button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+select,input[type=text],input[type=number]{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 8px}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.status i{width:9px;height:9px;border-radius:50%;background:#aaa}.status.on i{background:var(--good)}
+.notice{display:none;border-radius:10px;padding:10px 12px;margin-bottom:12px;background:#fff5e0;color:#6b4a0c;border:1px solid #f0d49a}
+.notice.show{display:block}
+@media (prefers-color-scheme:dark){.notice{background:#2c2413;color:#f0d49a;border-color:#5a4718}}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+/* the pedal */
+.pedal{background:linear-gradient(160deg,var(--panel2),var(--panel));border-radius:18px;padding:18px 14px 14px;color:#eee;user-select:none;touch-action:none}
+.knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 6px;justify-items:center}
+.knob{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:ns-resize;outline:none}
+.knob svg{width:76px;height:76px}
+.knob b{font-size:12px;letter-spacing:.08em}
+.knob span{font-size:11px;color:#aab}
+.knob:focus-visible svg{filter:drop-shadow(0 0 4px var(--accent))}
+.switches{display:flex;justify-content:center;gap:26px;margin:14px 0 6px}
+.sw3{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px}
+.sw3 .opts{display:flex;gap:4px}
+.sw3 button{background:#3a3f49;border-color:#4a505b;color:#ddd;padding:4px 10px;font-size:12px}
+.sw3 button.on{background:#e8e8ea;color:#111}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:0 10px}
+.fs{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em}
+.led{width:12px;height:12px;border-radius:50%;background:#511;box-shadow:inset 0 0 2px #000}
+.led.on{background:var(--led);box-shadow:0 0 10px var(--led)}
+.led.fav.on{background:#9fe;box-shadow:0 0 10px #9fe}
+.fsw{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fafafa,#9a9ea6 60%,#6b6f76);border:3px solid #444;cursor:pointer}
+.fsw:active{transform:scale(.96)}
+.desc{font-size:12.5px;color:var(--muted);margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:4px 12px;font-size:13px}
+.chips button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:12px;color:var(--muted);margin:10px 0 4px}
+/* presets */
+.plist{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.pr{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
+.pr:last-child{border-bottom:0}
+.pr.cur{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.pr .n{width:38px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pr .bar{width:4px;align-self:stretch;border-radius:2px;background:transparent}
+.pr .bar.s{background:var(--good)}.pr .bar.e{background:var(--amber)}
+.pr .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr small{color:var(--muted);font-size:11.5px}
+pre.log{max-height:200px;overflow:auto;font:12px/1.4 ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;margin:8px 0 0;white-space:pre-wrap}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:420px}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+footer{color:var(--muted);font-size:13px;text-align:center;margin:20px 0}
+.kofi{background:#ff5e5b;border-color:#ff5e5b;color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Iridium Control</h1>
+  <span class="status" id="status"><i></i><span id="statusText">Not connected</span></span>
+  <span class="grow"></span>
+  <button class="primary" id="btnConnect">Connect pedal</button>
+  <div class="sub">Edit the Strymon Iridium over USB MIDI – knobs, amps, cabs, live settings and a 300-slot preset library.
+    Also as an <a href="https://github.com/jonsolberg/strymoniridiumcontrol/releases/latest/download/IridiumControl.apk">Android app</a>.</div>
+</header>
+
+<div class="notice" id="noMidi"><b>This browser can't talk to MIDI devices.</b> Use Chrome, Edge or Opera on a computer,
+  or Chrome on Android with a USB OTG cable. You can still plan presets here and export them to a file.</div>
+
+<div class="card" id="connCard" style="display:none">
+  <div class="row">
+    <label>Output <select id="selOut"></select></label>
+    <label>Input <select id="selIn"></select></label>
+    <label>Channel <select id="selCh"></select></label>
+    <label><input type="checkbox" id="chkFollow" checked> Follow the pedal</label>
+  </div>
+</div>
+
+<div class="grid">
+<div>
+  <div class="pedal" id="pedal">
+    <div class="knobs" id="knobs"></div>
+    <div class="switches">
+      <div class="sw3"><span>AMP</span><div class="opts" id="ampSw"></div></div>
+      <div class="sw3"><span>CAB</span><div class="opts" id="cabSw"></div></div>
+    </div>
+    <div class="foot">
+      <div class="fs"><div class="led fav" id="ledFav"></div><button class="fsw" id="fsFav" title="FAV (tap)"></button>FAV</div>
+      <div style="text-align:center;font-size:12px;color:#bbb"><div id="ampName"></div><div id="cabName"></div></div>
+      <div class="fs"><div class="led" id="ledOn"></div><button class="fsw" id="fsOn" title="ON / bypass"></button>ON</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Live edit</h2>
+    <div class="lbl">Room size</div><div class="chips" id="chRoom"></div>
+    <div class="lbl">Cab set</div><div class="chips" id="chCabSet"></div>
+    <div class="desc" id="cabDesc"></div>
+    <div class="lbl">Amp</div><div class="chips" id="chAmpOn"></div>
+    <div class="desc" id="ampDesc"></div>
+    <div class="lbl">Volume pedal</div><div class="chips" id="chVol"></div>
+  </div>
+</div>
+
+<div>
+  <div class="card">
+    <h2>Presets</h2>
+    <div class="row" style="margin-bottom:8px">
+      <button id="btnPrev">‹</button><b id="curName" class="grow">–</b><button id="btnNext">›</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <button class="primary" id="btnStore">Store</button>
+      <button id="btnSave" title="Write the current slot into the pedal">Save to pedal</button>
+      <button id="btnSend">Send all</button>
+    </div>
+    <div class="plist" id="plist"></div>
+    <div class="desc">Green = stored in the pedal, amber = only here. Click a preset to load it.</div>
+    <div class="row" style="margin-top:10px">
+      <button id="btnExport">Export backup</button>
+      <label><button id="btnImport">Import</button><input type="file" id="fileImport" accept=".json,application/json" hidden></label>
+    </div>
+    <div class="desc">Backups are the same JSON files as the Android app's <i>Settings → Backup</i>, so you can move presets between them.</div>
+  </div>
+
+  <div class="card">
+    <h2>About</h2>
+    <div>Iridium Control · © 2026 Jon Solberg · free and open source (GNU GPL v3).</div>
+    <div class="desc">An independent project, not affiliated with Strymon. Settings and presets are kept in this browser.</div>
+    <div class="row" style="margin-top:10px">
+      <a href="https://jonsolberg.se:8080/">jonsolberg.se – more apps and games</a> ·
+      <a href="https://github.com/jonsolberg/strymoniridiumcontrol">Source and help on GitHub</a>
+    </div>
+    <div class="row" style="margin-top:10px"><a class="kofi" href="https://ko-fi.com/jonsolberg" style="text-decoration:none;border-radius:999px;padding:7px 14px">❤️ Support me on Ko-fi</a></div>
+    <details style="margin-top:10px"><summary>MIDI log</summary><pre class="log" id="log"></pre></details>
+  </div>
+</div>
+</div>
+
+<footer>Works in Chrome, Edge and Opera, and in Chrome on Android. To follow the real knobs, set the pedal's MIDI Output to ON (see the README).</footer>
+</div>
+
+<dialog id="dlg"><form method="dialog">
+  <h3 id="dlgTitle" style="margin-top:0"></h3><div id="dlgBody"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px" id="dlgBtns"></div>
+</form></dialog>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+/* ---------------------------------------------------------------- pedal model (as the app) */
+const CC = { BANK: 0, VOL: 9, LEVEL: 12, DRIVE: 13, BASS: 14, MIDDLE: 15, TREBLE: 16, ROOM: 17, ROOM_SIZE: 18, AMP: 19, CAB: 20,
+  AMP_OFF: 21, FAV: 27, ON: 28, AMP_KNOB_OUT: 29, CAB_KNOB_OUT: 30, BYPASS: 102 };
+const AMPS = ['round', 'chime', 'punch'];
+const AMP_DESC = ['American black-panel clean', 'British top-boost chime', 'British plexi crunch'];
+const CAB_DESC = ['1x12 open-back combo', '1x12 small combo', '2x10 combo', '2x12 open-back combo', '1x12 closed-back', '4x12 half-back',
+  '4x12 greenback-style', '2x12 V30-style', '8x12 full stack'];
+const ROOMS = ['Small', 'Medium', 'Large'];
+const AMP_SWITCH_LOOKUP = [1, 2, 3], CAB_SWITCH_LOOKUP = [0, 1, 2];
+const PRESETS = 300, MANUAL = 127;
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const cabName = c => `${AMPS[(c / 3) | 0]}-${'abc'[c % 3]}`;
+const pct = v => Math.round(v * 100 / 127);
+const defSound = () => ({ drive: 64, level: 64, bass: 64, middle: 64, treble: 64, room: 32, roomSize: 2, amp: 1, cab: 0, ampDisabled: false, volumePost: false });
+/** amp before cab: the pedal re-maps the cab when the amp changes */
+const ccList = s => [[CC.AMP, s.amp], [CC.CAB, s.cab], [CC.DRIVE, s.drive], [CC.LEVEL, s.level], [CC.BASS, s.bass], [CC.MIDDLE, s.middle],
+  [CC.TREBLE, s.treble], [CC.ROOM_SIZE, s.roomSize], [CC.ROOM, s.room], [CC.AMP_OFF, s.ampDisabled ? 127 : 0], [CC.VOL, s.volumePost ? 127 : 0]];
+function withCc(s, c, v) {
+  s = Object.assign({}, s); v = Math.max(0, Math.min(127, v));
+  switch (c) {
+    case CC.DRIVE: s.drive = v; break; case CC.LEVEL: s.level = v; break; case CC.BASS: s.bass = v; break;
+    case CC.MIDDLE: s.middle = v; break; case CC.TREBLE: s.treble = v; break; case CC.ROOM: s.room = v; break;
+    case CC.ROOM_SIZE: if (v >= 1 && v <= 3) s.roomSize = v; break;
+    case CC.AMP: if (v >= 1 && v <= 3) s.amp = v; break;
+    case CC.CAB: if (v <= 8) s.cab = v; break;
+    case CC.AMP_OFF: s.ampDisabled = v > 0; break;
+    case CC.VOL: s.volumePost = v > 0; break;
+  }
+  return s;
+}
+const toMidi = s => ccList(s).map(([ccn, ccv]) => ({ ccn, ccv }));
+const fromMidi = arr => (arr || []).reduce((s, o) => withCc(s, o.ccn, o.ccv), defSound());
+const summary = s => `${cap(AMPS[s.amp - 1])}-${pct(s.drive)} | ${cap(cabName(s.cab))} | ${ROOMS[s.roomSize - 1]}-${pct(s.room)}`;
+
+/* ---------------------------------------------------------------- state, kept in the browser */
+const LS = { get(k, d) { try { const v = localStorage.getItem('iri-' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem('iri-' + k, JSON.stringify(v)); } catch (e) { /* private mode */ } } };
+let presets = LS.get('presets', null) || Array.from({ length: PRESETS }, (_, n) => ({ n, name: '', sound: null, sync: 'EMPTY' }));
+let cur = LS.get('current', 0), sound = LS.get('sound', defSound()), engaged = true, favLit = false;
+let channel = LS.get('channel', 0);
+const savePresets = () => LS.set('presets', presets);
+const keep = () => { LS.set('sound', sound); LS.set('current', cur); };
+
+/* ---------------------------------------------------------------- MIDI */
+let access = null, out = null, inp = null;
+const logLines = [];
+function log(s) {
+  logLines.unshift(new Date().toTimeString().slice(0, 8) + '  ' + s);
+  if (logLines.length > 200) logLines.pop();
+  $('log').textContent = logLines.join('\n');
+}
+function send(bytes) { if (out) { out.send(bytes); return true; } return false; }
+function cc(n, v) { if (send([0xB0 | channel, n, v])) log(`→ ch${channel + 1} CC ${n} = ${v}`); }
+function program(n) { cc(CC.BANK, (n / 128) | 0); if (send([0xC0 | channel, n % 128])) log(`→ PC ${n % 128} (bank ${(n / 128) | 0})`); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function sendAll(s = sound) { for (const [c, v] of ccList(s)) { cc(c, v); await sleep(12); } }
+
+async function connect() {
+  if (!navigator.requestMIDIAccess) return;
+  try { access = await navigator.requestMIDIAccess({ sysex: false }); }
+  catch (e) { alert('The browser did not allow MIDI access: ' + e.message); return; }
+  access.onstatechange = fillPorts;
+  $('connCard').style.display = '';
+  fillPorts();
+}
+function fillPorts() {
+  const outs = [...access.outputs.values()], ins = [...access.inputs.values()];
+  const pickName = list => (list.find(p => /iridium/i.test(p.name)) || list[0] || {}).id;
+  const fill = (sel, list, keepId) => {
+    sel.innerHTML = list.length ? list.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '<option value="">(none)</option>';
+    sel.value = list.some(p => p.id === keepId) ? keepId : (pickName(list) || '');
+  };
+  fill($('selOut'), outs, out && out.id); fill($('selIn'), ins, inp && inp.id);
+  usePorts();
+}
+function usePorts() {
+  if (inp) inp.onmidimessage = null;
+  out = access.outputs.get($('selOut').value) || null;
+  inp = access.inputs.get($('selIn').value) || null;
+  if (inp) inp.onmidimessage = onMidi;
+  $('status').classList.toggle('on', !!out);
+  $('statusText').textContent = out ? 'Connected: ' + out.name : 'No MIDI output';
+  $('btnConnect').textContent = out ? 'Refresh' : 'Connect pedal';
+}
+let incomingBank = 0, onSentAt = 0, favSentAt = 0;
+function onMidi(e) {
+  const [st, a, b] = e.data, type = st & 0xF0;
+  if (type === 0xB0) {
+    log(`← ch${(st & 15) + 1} CC ${a} = ${b}`);
+    if (a === CC.BANK) { incomingBank = b; return; }
+    if (!$('chkFollow').checked) return;
+    if ([CC.LEVEL, CC.DRIVE, CC.BASS, CC.MIDDLE, CC.TREBLE, CC.ROOM, CC.ROOM_SIZE, CC.AMP_OFF, CC.VOL, CC.CAB].includes(a)) sound = withCc(sound, a, b);
+    else if (a === CC.AMP && b >= 1 && b <= 3) sound = Object.assign({}, sound, { amp: b, cab: (b - 1) * 3 + sound.cab % 3 });
+    else if (a === CC.AMP_KNOB_OUT && b >= 1 && b <= 3) { const amp = AMP_SWITCH_LOOKUP[b - 1]; sound = Object.assign({}, sound, { amp, cab: (amp - 1) * 3 + sound.cab % 3 }); }
+    else if (a === CC.CAB_KNOB_OUT && b >= 1 && b <= 3) sound = Object.assign({}, sound, { cab: (sound.amp - 1) * 3 + CAB_SWITCH_LOOKUP[b - 1] });
+    else if (a === CC.BYPASS) engaged = b > 0;
+    else if (a === CC.ON && b > 0 && Date.now() - onSentAt > 400) engaged = !engaged;
+    else if (a === CC.FAV && b > 0 && Date.now() - favSentAt > 400) favLit = !favLit;
+    keep(); render();
+  } else if (type === 0xC0) {
+    log(`← PC ${a} (bank ${incomingBank})`);
+    if (!$('chkFollow').checked) return;
+    const n = incomingBank * 128 + a;
+    if (n < PRESETS && n !== MANUAL) { cur = n; if (presets[n].sound) sound = presets[n].sound; keep(); render(); }
+  }
+}
+
+/* ---------------------------------------------------------------- knobs */
+const KNOBS = [['DRIVE', 'drive', CC.DRIVE], ['LEVEL', 'level', CC.LEVEL], ['BASS', 'bass', CC.BASS],
+               ['MIDDLE', 'middle', CC.MIDDLE], ['TREBLE', 'treble', CC.TREBLE], ['ROOM', 'room', CC.ROOM]];
+function knobSvg(v) {
+  const a = -135 + v / 127 * 270, r = a * Math.PI / 180, x = 38 + 24 * Math.sin(r), y = 38 - 24 * Math.cos(r);
+  return `<svg viewBox="0 0 76 76"><circle cx="38" cy="38" r="31" fill="#111"/><circle cx="38" cy="38" r="27" fill="var(--knob)"/>`
+    + `<circle cx="38" cy="38" r="22" fill="url(#kg)"/><line x1="38" y1="38" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#111" stroke-width="4" stroke-linecap="round"/>`
+    + `<defs><radialGradient id="kg" cx=".35" cy=".3"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#9da1a8"/></radialGradient></defs></svg>`;
+}
+function setVal(c, v) {
+  const next = withCc(sound, c, Math.round(v));
+  if (JSON.stringify(next) === JSON.stringify(sound)) return;
+  sound = next; cc(c, Math.round(v)); keep(); render();
+}
+function buildKnobs() {
+  $('knobs').innerHTML = KNOBS.map(([lab, key]) => `<div class="knob" tabindex="0" data-k="${key}"><div class="kv"></div><b>${lab}</b><span></span></div>`).join('');
+  $('knobs').querySelectorAll('.knob').forEach(el => {
+    const [, key, c] = KNOBS.find(k => k[1] === el.dataset.k);
+    let y0 = 0, x0 = 0, v0 = 0, drag = false;
+    el.addEventListener('pointerdown', e => { drag = true; y0 = e.clientY; x0 = e.clientX; v0 = sound[key]; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointermove', e => { if (drag) setVal(c, Math.max(0, Math.min(127, v0 + (y0 - e.clientY + e.clientX - x0) * 0.6))); });
+    el.addEventListener('pointerup', () => { drag = false; });
+    el.addEventListener('dblclick', () => setVal(c, 64));
+    el.addEventListener('wheel', e => { e.preventDefault(); setVal(c, Math.max(0, Math.min(127, sound[key] - Math.sign(e.deltaY) * 3))); }, { passive: false });
+    el.addEventListener('keydown', e => {
+      const d = { ArrowUp: 2, ArrowRight: 2, ArrowDown: -2, ArrowLeft: -2, PageUp: 10, PageDown: -10 }[e.key];
+      if (d) { e.preventDefault(); setVal(c, Math.max(0, Math.min(127, sound[key] + d))); }
+    });
+  });
+}
+
+/* ---------------------------------------------------------------- switches and live edit */
+function setAmp(a) {
+  if (a === sound.amp) return;
+  const cab = (a - 1) * 3 + sound.cab % 3;
+  sound = Object.assign({}, sound, { amp: a, cab }); cc(CC.AMP, a); cc(CC.CAB, cab); keep(); render();
+}
+function setCab(c) { if (c === sound.cab) return; sound = Object.assign({}, sound, { cab: c }); cc(CC.CAB, c); keep(); render(); }
+function chips(el, labels, on, fn) {
+  el.innerHTML = labels.map((l, i) => `<button class="${i === on ? 'on' : ''}" data-i="${i}">${l}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => fn(+b.dataset.i));
+}
+
+/* ---------------------------------------------------------------- presets */
+const num = n => String(n + 1).padStart(3, '0');
+function select(n) {
+  if (n < 0 || n >= PRESETS || n === MANUAL) return;
+  cur = n; const p = presets[n];
+  if (p.sync === 'SYNCED') { sound = p.sound; program(n); }
+  else if (p.sync === 'EDITED') { sound = p.sound; sendAll(); }
+  keep(); render();
+}
+function step(d) { let n = cur; do { n = (n + d + PRESETS) % PRESETS; } while (n === MANUAL); select(n); }
+function dialog(title, body, buttons) {
+  $('dlgTitle').textContent = title; $('dlgBody').innerHTML = body;
+  $('dlgBtns').innerHTML = buttons.map(([v, l, p]) => `<button value="${v}" class="${p ? 'primary' : ''}">${l}</button>`).join('');
+  $('dlg').showModal();
+  return new Promise(r => $('dlg').addEventListener('close', () => r($('dlg').returnValue), { once: true }));
+}
+async function store() {
+  const p = presets[cur];
+  const r = await dialog(`Store preset ${num(cur)}`, `<label>Name<br><input type="text" id="nm" value="${(p.name || '').replace(/"/g, '&quot;')}" maxlength="40" style="width:100%"></label>`, [['no', 'Cancel'], ['ok', 'Store', 1]]);
+  if (r !== 'ok') return;
+  presets[cur] = { n: cur, name: $('nm').value.trim(), sound, sync: 'EDITED' }; savePresets(); render();
+}
+let saving = false;
+async function saveToPedal() {
+  const p = presets[cur];
+  if (!out) return alert('Connect the pedal first.');
+  if (!p.sound) return alert('Store a sound in this slot first.');
+  if (saving) return;
+  const hold = LS.get('favHold', 2000), viaPc = LS.get('saveViaPc', true);
+  const r = await dialog(`Save preset ${num(cur)} to the pedal`, `<p>The editor recalls the slot, sends the sound, holds FAV over MIDI so the pedal enters save mode, then confirms.</p>
+    <label>FAV hold time (ms) <input type="number" id="hold" value="${hold}" min="500" max="5000" step="100" style="width:90px"></label><br>
+    <label><input type="checkbox" id="viapc" ${viaPc ? 'checked' : ''}> Confirm with a Program Change (firmware 1.33+), otherwise a second FAV press</label>`,
+    [['no', 'Cancel'], ['ok', 'Save', 1]]);
+  if (r !== 'ok') return;
+  LS.set('favHold', +$('hold').value || 2000); LS.set('saveViaPc', $('viapc').checked);
+  saving = true; $('btnSave').disabled = true; $('btnSave').textContent = 'Saving…';
+  try {
+    program(cur); await sleep(300); await sendAll(p.sound); await sleep(200);
+    cc(CC.FAV, 127); await sleep(+$('hold').value || 2000); cc(CC.FAV, 0); await sleep(400);
+    if ($('viapc').checked) program(cur); else { cc(CC.FAV, 127); await sleep(80); cc(CC.FAV, 0); }
+    await sleep(800);
+    presets[cur] = Object.assign({}, p, { sync: 'SYNCED' }); savePresets(); log(`Saved preset ${num(cur)} to the pedal`);
+  } finally { saving = false; $('btnSave').disabled = false; $('btnSave').textContent = 'Save to pedal'; render(); }
+}
+function exportBackup() {
+  const data = { app: 'Iridium Control', type: 'backup', version: 1,
+    presets: presets.filter(p => p.sound).map(p => ({ number: p.n, title: p.name, state: 1, sync: p.sync, midi: toMidi(p.sound) })) };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = 'iridium-backup.json'; a.click();
+}
+async function importFile(f) {
+  try {
+    const root = JSON.parse(await f.text()), arr = root.presets || root.data || [];
+    let k = 0;
+    arr.forEach((o, i) => {
+      const n = Number.isInteger(o.number) ? o.number : i;
+      if (n < 0 || n >= PRESETS || n === MANUAL || !o.midi) return;
+      presets[n] = { n, name: o.title || o.name || '', sound: fromMidi(o.midi), sync: o.sync === 'SYNCED' ? 'SYNCED' : 'EDITED' }; k++;
+    });
+    savePresets(); render(); alert(`Imported ${k} preset${k === 1 ? '' : 's'}.`);
+  } catch (e) { alert('Could not read the file: ' + e.message); }
+}
+
+/* ---------------------------------------------------------------- drawing */
+function render() {
+  $('knobs').querySelectorAll('.knob').forEach(el => {
+    const key = el.dataset.k; el.querySelector('.kv').innerHTML = knobSvg(sound[key]); el.querySelector('span').textContent = pct(sound[key]) + '%';
+  });
+  chips($('ampSw'), AMPS, sound.amp - 1, i => setAmp(i + 1));
+  chips($('cabSw'), ['a', 'b', 'c'], sound.cab % 3, i => setCab(((sound.cab / 3) | 0) * 3 + i));
+  $('ampSw').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.i === sound.amp - 1));
+  $('ampName').textContent = cap(AMPS[sound.amp - 1]) + (sound.ampDisabled ? ' (bypassed)' : '');
+  $('cabName').textContent = 'Cab ' + cabName(sound.cab);
+  $('ledOn').classList.toggle('on', engaged); $('ledFav').classList.toggle('on', favLit);
+  chips($('chRoom'), ROOMS, sound.roomSize - 1, i => setVal(CC.ROOM_SIZE, i + 1));
+  chips($('chCabSet'), AMPS.map(cap), (sound.cab / 3) | 0, i => setCab(i * 3 + sound.cab % 3));
+  $('cabDesc').textContent = `Cab ${cabName(sound.cab)}: ${CAB_DESC[sound.cab]}`;
+  chips($('chAmpOn'), ['On', 'Bypassed'], sound.ampDisabled ? 1 : 0, i => setVal(CC.AMP_OFF, i ? 127 : 0));
+  $('ampDesc').textContent = `${cap(AMPS[sound.amp - 1])} amp: ${AMP_DESC[sound.amp - 1]}`;
+  chips($('chVol'), ['Pre', 'Post'], sound.volumePost ? 1 : 0, i => setVal(CC.VOL, i ? 127 : 0));
+  const p = presets[cur];
+  $('curName').textContent = `${num(cur)}  ${p.name || (p.sound ? 'Untitled' : '(empty)')}`;
+  $('plist').innerHTML = presets.map(q => q.n === MANUAL ? '' : `<div class="pr ${q.n === cur ? 'cur' : ''}" data-n="${q.n}"><span class="bar ${q.sync === 'SYNCED' ? 's' : q.sync === 'EDITED' ? 'e' : ''}"></span>
+    <span class="n">${num(q.n)}</span><span class="nm">${q.name || (q.sound ? 'Untitled' : '<small>empty</small>')}${q.sound ? `<br><small>${summary(q.sound)}</small>` : ''}</span></div>`).join('');
+}
+
+/* ---------------------------------------------------------------- start */
+$('selCh').innerHTML = Array.from({ length: 16 }, (_, i) => `<option value="${i}">${i + 1}</option>`).join('');
+$('selCh').value = channel;
+$('selCh').onchange = e => { channel = +e.target.value; LS.set('channel', channel); };
+$('selOut').onchange = usePorts; $('selIn').onchange = usePorts;
+$('btnConnect').onclick = connect;
+$('fsOn').onclick = () => { onSentAt = Date.now(); engaged = !engaged; cc(CC.BYPASS, engaged ? 127 : 0); render(); };
+$('fsFav').onclick = async () => { favSentAt = Date.now(); favLit = !favLit; render(); cc(CC.FAV, 127); await sleep(80); cc(CC.FAV, 0); };
+$('btnPrev').onclick = () => step(-1); $('btnNext').onclick = () => step(1);
+$('btnStore').onclick = store; $('btnSave').onclick = saveToPedal; $('btnSend').onclick = () => sendAll();
+$('btnExport').onclick = exportBackup;
+$('btnImport').onclick = () => $('fileImport').click();
+$('fileImport').onchange = e => { if (e.target.files[0]) importFile(e.target.files[0]); e.target.value = ''; };
+$('plist').onclick = e => { const r = e.target.closest('.pr'); if (r) select(+r.dataset.n); };
+if (!navigator.requestMIDIAccess) { $('noMidi').classList.add('show'); $('btnConnect').disabled = true; }
+buildKnobs(); render();
+window.__iri = { get sound() { return sound; }, presets, select, withCc, ccList };   // for tests
+</script>
+</body>
+</html>
